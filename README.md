@@ -30,7 +30,7 @@ This project is a modified version of the Primitive Mobs mod v1.0c for 1.7.10 an
 
 **Et Futurum Requiem Team** - Code in CompatThaumcraft.java and EtFuturum.java from the Et Futurum Requiem mod helped me understand the basis of adding Thaumcraft aspects to items, blocks, and mobs. This was used under the GNU Lesser General Public License v3.0 (https://choosealicense.com/licenses/lgpl-3.0/).
 
-**EnderIO Team** - Code in ThaumcraftAspects.java from the EnderIO mod helped me understand how to add Thaumcraft aspects to sub-items with meta data values. This was used under the Unlicense license.
+**EnderIO Team** - Code in ThaumcraftAspects.java from the EnderIO mod helped me understand how to add Thaumcraft aspects to sub-items with meta data values. This was used under the Unlicense license (https://choosealicense.com/licenses/unlicense/).
 
 
 All license conditions have been satisfied through the application of the GNU Lesser General Public License v3.0, credit to the creator of the Primitive Mobs mod, notice of changes to original mod, non-commercial distribution of this project, and disclosure of source code.
