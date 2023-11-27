@@ -1,152 +1,75 @@
 {
-    "entity.brainslime.slimecharge":
+    "mob.brainslime.slimecharge":
     {
         "category": "neutral",
         "sounds":
         [
-            "primitivemobs:entity/brainslime/slimecharge"
+            "mob/brainslime/slimecharge"
         ]
     },
-	    "entity.motherspider.spiderscreech":
+	    "mob.motherspider.spiderscreech":
     {
         "category": "neutral",
         "sounds":
         [
-            "primitivemobs:entity/motherspider/spiderscreech"
+            "mob/motherspider/spiderscreech"
         ]
     },
-    "entity.grovesprite.angry":
+    "mob.grovesprite.angry":
     {
         "category": "neutral",
         "sounds":
         [
-            "primitivemobs:entity/grovesprite/angry1"
+            "mob/grovesprite/angry1"
         ]
     },
-    "entity.grovesprite.death":
+    "mob.grovesprite.death":
     {
         "category": "neutral",
         "sounds":
         [
-            "primitivemobs:entity/grovesprite/death1",
-            "primitivemobs:entity/grovesprite/death2"
+            "mob/grovesprite/death1",
+            "mob/grovesprite/death2"
         ]
     },
-    "entity.grovesprite.friend":
+    "mob.grovesprite.friend":
     {
         "category": "neutral",
         "sounds":
         [
-            "primitivemobs:entity/grovesprite/friend1",
-            "primitivemobs:entity/grovesprite/friend2"
+            "mob/grovesprite/friend1",
+            "mob/grovesprite/friend2"
         ]
     },
-    "entity.grovesprite.hurt": {
-        "category": "neutral",
-        "sounds": [
-            "primitivemobs:entity/grovesprite/hurt1",
-            "primitivemobs:entity/grovesprite/hurt2",
-            "primitivemobs:entity/grovesprite/hurt3"
-        ]
-    },
-    "entity.grovesprite.idle":
-    {
-        "category": "neutral",
-        "sounds":
-         [
-            "primitivemobs:entity/grovesprite/idle1",
-            "primitivemobs:entity/grovesprite/idle2",
-            "primitivemobs:entity/grovesprite/idle3"
-		] 
-    },
-    "entity.grovesprite.thanks":
+    "mob.grovesprite.hurt":
     {
         "category": "neutral",
         "sounds":
         [
-            "primitivemobs:entity/grovesprite/thanks1",
-            "primitivemobs:entity/grovesprite/thanks2",
-            "primitivemobs:entity/grovesprite/thanks3"
+            "mob/grovesprite/hurt1",
+            "mob/grovesprite/hurt2",
+            "mob/grovesprite/hurt3"
         ]
     },
-	    "entity.trollager.attack":
+    "mob.grovesprite.idle":
     {
         "category": "neutral",
         "sounds":
         [
-            "primitivemobs:entity/trollager/attack"
+            "mob/grovesprite/idle1",
+            "mob/grovesprite/idle2",
+            "mob/grovesprite/idle3"
         ]
     },
-		"entity.trollager.death":
+    "mob.grovesprite.thanks":
     {
         "category": "neutral",
         "sounds":
         [
-            "primitivemobs:entity/trollager/death"
-        ]
-    },
-		"entity.trollager.hit":
-    {
-        "category": "neutral",
-        "sounds":
-        [
-            "primitivemobs:entity/trollager/hit"
-        ]
-    },
-		"entity.trollager.idle":
-    {
-        "category": "neutral",
-        "sounds":
-        [
-            "primitivemobs:entity/trollager/idle"
-        ]
-    },
-			"entity.harpy.idle":
-    {
-        "category": "neutral",
-        "sounds":
-        [
-            "primitivemobs:entity/harpy/idle"
-        ]
-    },
-				"entity.harpy.hurt":
-    {
-        "category": "neutral",
-        "sounds":
-        [
-            "primitivemobs:entity/harpy/hurt"
-        ]
-    },
-	"entity.flamespewer.idle":
-    {
-        "category": "neutral",
-        "sounds":
-        [
-            "primitivemobs:entity/flamespewer/idle"
-        ]
-    },
-	"entity.voideye.idle":
-    {
-        "category": "neutral",
-        "sounds":
-        [
-            "primitivemobs:entity/voideye/idle"
-        ]
-    },
-    "dig.squish":
-    {
-        "category": "neutral",
-        "sounds":
-        [
-            "primitivemobs:block/squish"
-        ]
-    },
-    "step.squish":
-    {
-        "category": "neutral",
-        "sounds":
-        [
-            "primitivemobs:block/squish"
+            "mob/grovesprite/thanks1",
+            "mob/grovesprite/thanks2",
+            "mob/grovesprite/thanks3"
         ]
     }
+
 }

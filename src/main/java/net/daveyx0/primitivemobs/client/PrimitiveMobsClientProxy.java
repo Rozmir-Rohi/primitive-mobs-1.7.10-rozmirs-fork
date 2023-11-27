@@ -1,35 +1,94 @@
 package net.daveyx0.primitivemobs.client;
 
+import cpw.mods.fml.client.registry.RenderingRegistry;
+import cpw.mods.fml.common.FMLCommonHandler;
+import net.daveyx0.primitivemobs.client.models.ModelChameleon;
+import net.daveyx0.primitivemobs.client.models.ModelDEnchantedBook;
+import net.daveyx0.primitivemobs.client.models.ModelDMimic;
+import net.daveyx0.primitivemobs.client.models.ModelDMinion;
+import net.daveyx0.primitivemobs.client.models.ModelEmpty;
+import net.daveyx0.primitivemobs.client.models.ModelLily;
+import net.daveyx0.primitivemobs.client.models.ModelLilyLurker;
+import net.daveyx0.primitivemobs.client.models.ModelSheepmanSmith;
+import net.daveyx0.primitivemobs.client.models.ModelTreasureSlime;
+import net.daveyx0.primitivemobs.client.renderer.entity.RenderBabySpider;
+import net.daveyx0.primitivemobs.client.renderer.entity.RenderBlazingJuggernaut;
+import net.daveyx0.primitivemobs.client.renderer.entity.RenderBrainSlime;
+import net.daveyx0.primitivemobs.client.renderer.entity.RenderChameleon;
+import net.daveyx0.primitivemobs.client.renderer.entity.RenderDEnchantedBook;
+import net.daveyx0.primitivemobs.client.renderer.entity.RenderDMimic;
+import net.daveyx0.primitivemobs.client.renderer.entity.RenderDMinion;
+import net.daveyx0.primitivemobs.client.renderer.entity.RenderDSkeletonWarrior;
+import net.daveyx0.primitivemobs.client.renderer.entity.RenderDSummoner;
+import net.daveyx0.primitivemobs.client.renderer.entity.RenderFestiveCreeper;
+import net.daveyx0.primitivemobs.client.renderer.entity.RenderHauntedTool;
+import net.daveyx0.primitivemobs.client.renderer.entity.RenderLily;
+import net.daveyx0.primitivemobs.client.renderer.entity.RenderLilyLurker;
+import net.daveyx0.primitivemobs.client.renderer.entity.RenderLostMiner;
+import net.daveyx0.primitivemobs.client.renderer.entity.RenderMotherSpider;
+import net.daveyx0.primitivemobs.client.renderer.entity.RenderRocketCreeper;
+import net.daveyx0.primitivemobs.client.renderer.entity.RenderSheepman;
+import net.daveyx0.primitivemobs.client.renderer.entity.RenderSheepmanSmith;
+import net.daveyx0.primitivemobs.client.renderer.entity.RenderSupportCreeper;
+import net.daveyx0.primitivemobs.client.renderer.entity.RenderTravelingMerchant;
+import net.daveyx0.primitivemobs.client.renderer.entity.RenderTreasureSlime;
 import net.daveyx0.primitivemobs.common.PrimitiveMobsCommonProxy;
-import net.daveyx0.primitivemobs.core.PrimitiveMobsEntityRegistry;
+import net.daveyx0.primitivemobs.common.handlers.PrimitiveMobsKeyHandler;
 import net.daveyx0.primitivemobs.core.PrimitiveMobsItems;
-import net.daveyx0.primitivemobs.core.PrimitiveMobsReference;
-import net.minecraftforge.client.model.obj.OBJLoader;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.event.FMLInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import net.minecraftforge.fml.relauncher.Side;
+import net.daveyx0.primitivemobs.entity.item.EntityCustomBall;
+import net.daveyx0.primitivemobs.entity.monster.EntityBabySpider;
+import net.daveyx0.primitivemobs.entity.monster.EntityBlazingJuggernaut;
+import net.daveyx0.primitivemobs.entity.monster.EntityBrainSlime;
+import net.daveyx0.primitivemobs.entity.monster.EntityDEnchantedBook;
+import net.daveyx0.primitivemobs.entity.monster.EntityDMimic;
+import net.daveyx0.primitivemobs.entity.monster.EntityDMinion;
+import net.daveyx0.primitivemobs.entity.monster.EntityDSkeletonWarrior;
+import net.daveyx0.primitivemobs.entity.monster.EntityDSummoner;
+import net.daveyx0.primitivemobs.entity.monster.EntityFestiveCreeper;
+import net.daveyx0.primitivemobs.entity.monster.EntityHauntedTool;
+import net.daveyx0.primitivemobs.entity.monster.EntityLily;
+import net.daveyx0.primitivemobs.entity.monster.EntityLilyLurker;
+import net.daveyx0.primitivemobs.entity.monster.EntityMotherSpider;
+import net.daveyx0.primitivemobs.entity.monster.EntityRocketCreeper;
+import net.daveyx0.primitivemobs.entity.monster.EntitySupportCreeper;
+import net.daveyx0.primitivemobs.entity.monster.EntityTreasureSlime;
+import net.daveyx0.primitivemobs.entity.passive.EntityChameleon;
+import net.daveyx0.primitivemobs.entity.passive.EntityLostMiner;
+import net.daveyx0.primitivemobs.entity.passive.EntitySheepman;
+import net.daveyx0.primitivemobs.entity.passive.EntitySheepmanSmith;
+import net.daveyx0.primitivemobs.entity.passive.EntityTravelingMerchant;
+import net.minecraft.client.model.ModelBase;
+import net.minecraft.client.model.ModelSlime;
+import net.minecraft.client.renderer.entity.Render;
+import net.minecraft.client.renderer.entity.RenderSnowball;
 
-@Mod.EventBusSubscriber(value= Side.CLIENT, modid = PrimitiveMobsReference.MODID)
 public class PrimitiveMobsClientProxy extends PrimitiveMobsCommonProxy {
-	
-	 @Override
-	    public void preInit(FMLPreInitializationEvent event) {
-	        OBJLoader.INSTANCE.addDomain(PrimitiveMobsReference.MODID);
-	        PrimitiveMobsEntityRegistry.registerRenderers();
-	        super.preInit(event);
-	    }
-
-	    @Override
-	    public void init(FMLInitializationEvent event) {
-	    	super.init(event);
-	    }
-
-	    @Override
-	    public void postInit(FMLPostInitializationEvent event) {
-	    	PrimitiveMobsItems.registerItemColors();
-	    	super.postInit(event);
-	    }
-	    
+  public void registerRenderInformation() {}
+  
+  public void registerRenderers() {
+    FMLCommonHandler.instance().bus().register(new PrimitiveMobsKeyHandler());
+    float bugShadowSize = 0.2F;
+    RenderingRegistry.registerEntityRenderingHandler(EntityRocketCreeper.class, (Render)new RenderRocketCreeper());
+    RenderingRegistry.registerEntityRenderingHandler(EntityFestiveCreeper.class, (Render)new RenderFestiveCreeper());
+    RenderingRegistry.registerEntityRenderingHandler(EntitySupportCreeper.class, (Render)new RenderSupportCreeper());
+    RenderingRegistry.registerEntityRenderingHandler(EntityChameleon.class, (Render)new RenderChameleon((ModelBase)new ModelChameleon(), 0.3F));
+    RenderingRegistry.registerEntityRenderingHandler(EntityTreasureSlime.class, (Render)new RenderTreasureSlime((ModelBase)new ModelTreasureSlime(1), (ModelBase)new ModelTreasureSlime(0), 0.5F));
+    RenderingRegistry.registerEntityRenderingHandler(EntityHauntedTool.class, (Render)new RenderHauntedTool(new ModelEmpty(), 0.2F));
+    RenderingRegistry.registerEntityRenderingHandler(EntityDMimic.class, (Render)new RenderDMimic((ModelBase)new ModelDMimic(), (ModelBase)new ModelDMimic(), 0.5F));
+    RenderingRegistry.registerEntityRenderingHandler(EntityDEnchantedBook.class, (Render)new RenderDEnchantedBook((ModelBase)new ModelDEnchantedBook(), (ModelBase)new ModelDEnchantedBook(), 0.2F));
+    RenderingRegistry.registerEntityRenderingHandler(EntityTravelingMerchant.class, (Render)new RenderTravelingMerchant());
+    RenderingRegistry.registerEntityRenderingHandler(EntityLostMiner.class, (Render)new RenderLostMiner());
+    RenderingRegistry.registerEntityRenderingHandler(EntityBrainSlime.class, (Render)new RenderBrainSlime((ModelBase)new ModelSlime(1), (ModelBase)new ModelSlime(0), 0.5F));
+    RenderingRegistry.registerEntityRenderingHandler(EntityDSkeletonWarrior.class, (Render)new RenderDSkeletonWarrior());
+    RenderingRegistry.registerEntityRenderingHandler(EntityMotherSpider.class, (Render)new RenderMotherSpider());
+    RenderingRegistry.registerEntityRenderingHandler(EntityBabySpider.class, (Render)new RenderBabySpider());
+    RenderingRegistry.registerEntityRenderingHandler(EntityBlazingJuggernaut.class, (Render)new RenderBlazingJuggernaut());
+    RenderingRegistry.registerEntityRenderingHandler(EntitySheepman.class, (Render)new RenderSheepman());
+    RenderingRegistry.registerEntityRenderingHandler(EntityDSummoner.class, (Render)new RenderDSummoner());
+    RenderingRegistry.registerEntityRenderingHandler(EntityDMinion.class, (Render)new RenderDMinion((ModelBase)new ModelDMinion(), 0.5F));
+    RenderingRegistry.registerEntityRenderingHandler(EntityLilyLurker.class, (Render)new RenderLilyLurker((ModelBase)new ModelLilyLurker(), 0.5F));
+    RenderingRegistry.registerEntityRenderingHandler(EntityLily.class, (Render)new RenderLily((ModelBase)new ModelLily(), 0.5F));
+    RenderingRegistry.registerEntityRenderingHandler(EntitySheepmanSmith.class, (Render)new RenderSheepmanSmith((ModelBase)new ModelSheepmanSmith(), 0.5F));
+    RenderingRegistry.registerEntityRenderingHandler(EntityCustomBall.class, (Render)new RenderSnowball(PrimitiveMobsItems.tarBall, 0));
+  }
 }

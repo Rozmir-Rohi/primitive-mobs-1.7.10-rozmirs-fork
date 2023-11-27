@@ -1,350 +1,360 @@
 package net.daveyx0.primitivemobs.item;
 
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import java.awt.Color;
-import java.util.List;
-
-import javax.annotation.Nullable;
-
-import net.daveyx0.multimob.message.MMMessageRegistry;
-import net.daveyx0.multimob.util.ColorUtil;
-import net.daveyx0.primitivemobs.core.PrimitiveMobs;
-import net.daveyx0.primitivemobs.message.MessagePrimitiveColor;
-import net.minecraft.block.state.IBlockState;
+import java.io.InputStream;
+import java.util.Set;
+import net.daveyx0.primitivemobs.client.PrimitiveMobsAchievementPage;
+import net.daveyx0.primitivemobs.common.PrimitiveMobs;
+import net.daveyx0.primitivemobs.common.packets.PrimitiveColorPacket;
+import net.daveyx0.primitivemobs.lib.ImageTester;
+import net.daveyx0.primitivemobs.lib.ResourceChecker;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockGrass;
+import net.minecraft.block.BlockLeaves;
+import net.minecraft.block.BlockLilyPad;
+import net.minecraft.block.BlockTallGrass;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.client.renderer.texture.IIconRegister;
+import net.minecraft.client.resources.IResource;
+import net.minecraft.client.resources.SimpleReloadableResourceManager;
+import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
-import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTUtil;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.stats.StatBase;
+import net.minecraft.util.IIcon;
+import net.minecraft.util.MathHelper;
+import net.minecraft.world.ColorizerFoliage;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.fluids.BlockFluidBase;
 
-public class ItemCamouflageArmor extends ItemArmor{
-
-	private float R;
-	private float G;
-	private float B;
-	private float NewR;
-	private float NewG;
-	private float NewB;
-	private int colorSpeed = 4;
-	private IBlockState currentState;
-	private int currentMultiplier;
-	
-	public ItemCamouflageArmor(final ArmorMaterial material, final EntityEquipmentSlot equipmentSlot, final String armourName) {
-		
-		super(material, -1, equipmentSlot);
-		ItemPrimitive.setItemName(this, armourName);
-		setCreativeTab(PrimitiveMobs.tabPrimitiveMobs);
-		setSkinRGB(new int[]{255,255,255});
-	}
-
-    public void onArmorTick(World world, EntityPlayer player, ItemStack armor) 
-    {
-		if(player != null && player.getEntityWorld().isRemote && !this.getCannotChange(armor))
-		{
-			this.changeColor(player);
-			setColor(armor, new Color((int)getSkinRGB()[0],(int)getSkinRGB()[1],(int)getSkinRGB()[2]).hashCode());
-			if(currentState != null)
-			{
-				setColorBlockState(armor, currentState);
-			}
-			MMMessageRegistry.getNetwork().sendToServer(new MessagePrimitiveColor(getColor(armor), this.armorType,  player.getUniqueID().toString()));
-		}
-		
-		//PrimitiveMobs.PMlogger.info("" + getColor(armor));
-		
-    	if(R != NewR || G != NewG || B != NewB)
-		{
-			for(int i = 0; i < colorSpeed; i++)
-			{
-				if(R > NewR)
-				{
-					R--;
-				}
-				else if (R < NewR)
-				{
-					R++;
-				}
-			
-				if(G > NewG)
-				{
-					G--;
-				}
-				else if (G < NewG)
-				{
-					G++;
-				}
-			
-				if(B > NewB)
-				{
-					B--;
-				}
-				else if (B < NewB)
-				{
-					B++;
-				}
-			}
-		}
-    	
-    	player.inventoryContainer.detectAndSendChanges();
-    	super.onArmorTick(world, player, armor);
-    }
-    
-    
-    @SideOnly(Side.CLIENT)
-    public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn)
-    {
-    	if(!stack.isEmpty() && stack.getItem() instanceof ItemCamouflageArmor)
-    	{
-    	ItemCamouflageArmor armor = (ItemCamouflageArmor)stack.getItem();
-    		
-    	if(armor.getCannotChange(stack))
-    	{
-        	tooltip.add("Camouflage: disabled");
-    	}
-    	else
-    	{
-        	tooltip.add("Camouflage: enabled");
-    	}
-
-    	Color color = new Color(armor.getColor(stack));
-    	//tooltip.add("\u00a74Red: " + color.getRed());
-    	//tooltip.add("\u00a72Green: " + color.getGreen());
-    	//tooltip.add("\u00a71Blue: " + color.getBlue());
-    	IBlockState state = armor.getColorBlockState(stack);
-    	if(state != null)
-    	{
-    		String name = new ItemStack(state.getBlock(), 1, state.getBlock().getMetaFromState(state)).getDisplayName();
-    		if(name.equals(Blocks.AIR.getLocalizedName()))
-    		{
-    			tooltip.add("Block: " + state.getBlock().getLocalizedName());
-    		}
-    		else
-    		{
-        	 	tooltip.add("Block: " + new ItemStack(state.getBlock(), 1, state.getBlock().getMetaFromState(state)).getDisplayName());
-    		}
-    	}
-    	}
-    	
-    	super.addInformation(stack, worldIn, tooltip, flagIn);
-    }
-    
-    public boolean hasOverlay(ItemStack stack)
-    {
-        return true;
-    }
-    
-    public float[] getSkinRGB()
-	{
-		return new float[]{R,G,B};
-	}
-	
-	public void setSkinRGB(int[] RGB)
-	{
-		R = (float)RGB[0];
-		G = (float)RGB[1];
-		B = (float)RGB[2];
-	}
-	
-	public float[] getNewSkinRGB()
-	{
-		return new float[]{NewR,NewG,NewB};
-	}
-	
-	public void setNewSkinRGB(int[] RGB)
-	{
-		NewR = (float)RGB[0];
-		NewG = (float)RGB[1];
-		NewB = (float)RGB[2];
-	}
-    
-    public void changeColor(Entity entity)
-	{
-		int i = MathHelper.floor(entity.posX);
-        int j = MathHelper.floor(entity.getEntityBoundingBox().minY);
-        int k = MathHelper.floor(entity.posZ);
-        
-		if(entity.getEntityWorld().getBlockState(new BlockPos(i, j, k)).getBlock() == Blocks.AIR)
-		{
-			j = MathHelper.floor(entity.getEntityBoundingBox().minY - 0.1);
-		}
-		
-		BlockPos pos = new BlockPos(i, j, k);
-		IBlockState state = entity.getEntityWorld().getBlockState(pos);
-		
-		int colorMultiplier = Minecraft.getMinecraft().getBlockColors().colorMultiplier(state, entity.getEntityWorld(), pos, 0);
-		
-		if(state.getBlock() != Blocks.AIR && (currentState != state || currentMultiplier != colorMultiplier))
-		{
-			currentState = state;
-			currentMultiplier = colorMultiplier;
-			
-			int[] newColor = ColorUtil.getBlockStateColor(state, pos, entity.getEntityWorld(), true);
-			if(newColor != null)
-			{
-				if(ColorUtil.isColorInvalid(newColor))
-				{
-					newColor = new int[]{255,255,255,255};
-				}
-				setNewSkinRGB(newColor);
-			}
-		}
-	}
-    
-    /**
-     * Return whether the specified armor ItemStack has a color.
-     */
-    public boolean hasColor(ItemStack stack)
-    {
-        NBTTagCompound nbttagcompound = stack.getTagCompound();
-        return nbttagcompound != null && nbttagcompound.hasKey("display", 10) ? nbttagcompound.getCompoundTag("display").hasKey("color", 3) : false;
-    }
-
-    /**
-     * Return the color for the specified armor ItemStack.
-     */
-    public int getColor(ItemStack stack)
-    {
-            NBTTagCompound nbttagcompound = stack.getTagCompound();
-
-            if (nbttagcompound != null)
-            {
-                NBTTagCompound nbttagcompound1 = nbttagcompound.getCompoundTag("display");
-
-                if (nbttagcompound1 != null && nbttagcompound1.hasKey("color", 3))
-                {
-                    return nbttagcompound1.getInteger("color");
-                }
-            }
-
-            return 16777215;
-    }
-
-    /**
-     * Remove the color from the specified armor ItemStack.
-     */
-    public void removeColor(ItemStack stack)
-    {
-            NBTTagCompound nbttagcompound = stack.getTagCompound();
-
-            if (nbttagcompound != null)
-            {
-                NBTTagCompound nbttagcompound1 = nbttagcompound.getCompoundTag("display");
-
-                if (nbttagcompound1.hasKey("color"))
-                {
-                    nbttagcompound1.removeTag("color");
-                }
-            }
-        
-    }
-    
-    @Nullable
-    public IBlockState getColorBlockState(ItemStack p_82814_1_)
-    {
-            NBTTagCompound nbttagcompound = p_82814_1_.getTagCompound();
-
-            if (nbttagcompound == null)
-            {
-                return Blocks.AIR.getDefaultState();
-            }
-            else
-            {
-                return NBTUtil.readBlockState(nbttagcompound);
-            }
-    }
-    
-    public void setColorBlockState(ItemStack stack, IBlockState state)
-    {
-    	 NBTTagCompound nbttagcompound = stack.getTagCompound();
-
-             if (nbttagcompound == null)
-             {
-                 nbttagcompound = new NBTTagCompound();
-                 stack.setTagCompound(nbttagcompound);
-             }
-
-             NBTUtil.writeBlockState(nbttagcompound, state);
-    }
-
-    /**
-     * Sets the color of the specified armor ItemStack
-     */
-    public void setColor(ItemStack stack, int color)
-    {
-            NBTTagCompound nbttagcompound = stack.getTagCompound();
-
-            if (nbttagcompound == null)
-            {
-                nbttagcompound = new NBTTagCompound();
-                stack.setTagCompound(nbttagcompound);
-            }
-
-            NBTTagCompound nbttagcompound1 = nbttagcompound.getCompoundTag("display");
-
-            if (!nbttagcompound.hasKey("display", 10))
-            {
-                nbttagcompound.setTag("display", nbttagcompound1);
-            }
-
-            nbttagcompound1.setInteger("color", color);
-        
-    }
-    
-    public boolean getCannotChange(ItemStack p_82814_1_)
-    {
-            NBTTagCompound nbttagcompound = p_82814_1_.getTagCompound();
-
-            if (nbttagcompound == null)
-            {
-                return false;
-            }
-            else
-            {
-                return nbttagcompound == null ? false : (nbttagcompound.hasKey("change") ? nbttagcompound.getBoolean("change") : false);
-            }
-    }
-    
-    public void setCannotChange(ItemStack stack, boolean set)
-    {
-    	 NBTTagCompound nbttagcompound = stack.getTagCompound();
-
-             if (nbttagcompound == null)
-             {
-                 nbttagcompound = new NBTTagCompound();
-                 stack.setTagCompound(nbttagcompound);
-             }
-
-             nbttagcompound.setBoolean("change", set);
-    }
-    
-	//Sets color nbt value of the camouflage armor and sends it over to the server so other player can see it, used for entities that wear the armor
-	 public static void setCamouflageArmorNBT(EntityLivingBase entity, EntityEquipmentSlot slot)
-	    {
-	    	ItemStack stack = entity.getItemStackFromSlot(slot);
-	    	if(stack.getItem() instanceof ItemCamouflageArmor)
-			{
-				ItemCamouflageArmor item = (ItemCamouflageArmor)stack.getItem();
-				
-				if(!item.getCannotChange(stack) && entity.getEntityWorld().isRemote)
-				{
-					int color = ColorUtil.getBlockColor(entity);
-					if(color < -1)
-					{
-						item.setColor(stack, color);
-						item.setColorBlockState(stack, ColorUtil.getBlockState(entity));
-						MMMessageRegistry.getNetwork().sendToServer(new MessagePrimitiveColor(item.getColor(stack), slot,  entity.getUniqueID().toString()));
-					}
-				}
-			}
-	    }
+public class ItemCamouflageArmor extends ItemArmor {
+  private float R;
+  
+  private float G;
+  
+  private float B;
+  
+  private float NewR;
+  
+  private float NewG;
+  
+  private float NewB;
+  
+  private boolean hasChanged;
+  
+  private Block currentBlock;
+  
+  private int currentMeta;
+  
+  private int currentFoliage;
+  
+  byte camo = 0;
+  
+  byte camoChanged;
+  
+  String[] names = new String[] { "CamouflageHelmet", "CamouflageChestplate", "CamouflageLeggings", "CamouflageBoots" };
+  
+  private Color thisArmorColor = new Color(255, 255, 255);
+  
+  public ItemCamouflageArmor(int p_i45325_3_) {
+    super(ItemArmor.ArmorMaterial.CLOTH, 0, p_i45325_3_);
+    setCreativeTab((CreativeTabs)PrimitiveMobs.tabPrimitiveMobs);
+    setUnlocalizedName(this.names[p_i45325_3_]);
+    this.currentBlock = Blocks.bedrock;
+  }
+  
+  public String getUnlocalizedName(ItemStack par1ItemStack) {
+    String localName = getUnlocalizedName().replace("item.", "");
+    return "item.primitivemobs." + localName;
+  }
+  
+  public boolean hasContainerItem(ItemStack stack) {
+    return true;
+  }
+  
+  @SideOnly(Side.CLIENT)
+  public void registerIcons(IIconRegister p_94581_1_) {
+    this.iconString = "minecraft:leather_helmet";
+    super.registerIcons(p_94581_1_);
+    switch (this.armorType) {
+      case 0:
+        this.itemIcon = p_94581_1_.registerIcon("minecraft:leather_helmet");
+        return;
+      case 1:
+        this.itemIcon = p_94581_1_.registerIcon("minecraft:leather_chestplate");
+        return;
+      case 2:
+        this.itemIcon = p_94581_1_.registerIcon("minecraft:leather_leggings");
+        return;
+      case 3:
+        this.itemIcon = p_94581_1_.registerIcon("minecraft:leather_boots");
+        return;
+    } 
+    this.itemIcon = p_94581_1_.registerIcon("minecraft:leather_helmet");
+  }
+  
+  @SideOnly(Side.CLIENT)
+  public int getColorFromItemStack(ItemStack p_82790_1_, int p_82790_2_) {
+    return func_82814_b(p_82790_1_);
+  }
+  
+  public void onArmorTick(World world, EntityPlayer player, ItemStack armor) {
+    this.camoChanged = getNoCamo(armor);
+    if (player != null && this.camoChanged != this.camo) {
+      this.camo = this.camoChanged;
+      surroundWithParticles(player);
+    } 
+    if (player != null && world.isRemote && getNoCamo(armor) == 0)
+      changeColor(world, player); 
+    if (this.R != this.NewR || this.G != this.NewG || this.B != this.NewB) {
+      this.hasChanged = false;
+      if (this.R > this.NewR) {
+        this.R--;
+      } else if (this.R < this.NewR) {
+        this.R++;
+      } 
+      if (this.G > this.NewG) {
+        this.G--;
+      } else if (this.G < this.NewG) {
+        this.G++;
+      } 
+      if (this.B > this.NewB) {
+        this.B--;
+      } else if (this.B < this.NewB) {
+        this.B++;
+      } 
+      if (this.armorType == 0) {
+        PrimitiveMobs.network.sendToServer((IMessage)new PrimitiveColorPacket("3" + (new Color(this.R / 255.0F, this.G / 255.0F, this.B / 255.0F)).hashCode()));
+      } else if (this.armorType == 1) {
+        PrimitiveMobs.network.sendToServer((IMessage)new PrimitiveColorPacket("2" + (new Color(this.R / 255.0F, this.G / 255.0F, this.B / 255.0F)).hashCode()));
+      } else if (this.armorType == 2) {
+        PrimitiveMobs.network.sendToServer((IMessage)new PrimitiveColorPacket("1" + (new Color(this.R / 255.0F, this.G / 255.0F, this.B / 255.0F)).hashCode()));
+      } else if (this.armorType == 3) {
+        PrimitiveMobs.network.sendToServer((IMessage)new PrimitiveColorPacket("0" + (new Color(this.R / 255.0F, this.G / 255.0F, this.B / 255.0F)).hashCode()));
+      } 
+    } else {
+      this.hasChanged = true;
+    } 
+    int currentColor = func_82814_b(armor);
+    if (currentColor == -9345685 && this.hasChanged) {
+      player.addStat((StatBase)PrimitiveMobsAchievementPage.specialColor1, 1);
+    } else if (currentColor == -13279398 && this.hasChanged) {
+      player.addStat((StatBase)PrimitiveMobsAchievementPage.specialColor2, 1);
+    } else if (currentColor == -13380919 && this.hasChanged) {
+      player.addStat((StatBase)PrimitiveMobsAchievementPage.specialColor3, 1);
+    } 
+  }
+  
+  public int func_82814_b(ItemStack p_82814_1_) {
+    NBTTagCompound nbttagcompound = p_82814_1_.getTagCompound();
+    if (nbttagcompound == null)
+      return 10511680; 
+    NBTTagCompound nbttagcompound1 = nbttagcompound.getCompoundTag("display");
+    return (nbttagcompound1 == null) ? 10511680 : (nbttagcompound1.hasKey("color", 3) ? nbttagcompound1.getInteger("color") : 10511680);
+  }
+  
+  public byte getNoCamo(ItemStack p_82814_1_) {
+    NBTTagCompound nbttagcompound = p_82814_1_.getTagCompound();
+    if (nbttagcompound == null)
+      return 0; 
+    NBTTagCompound nbttagcompound1 = nbttagcompound.getCompoundTag("display");
+    return (nbttagcompound1 == null) ? 0 : (nbttagcompound1.hasKey("camo", 1) ? nbttagcompound1.getByte("camo") : 0);
+  }
+  
+  public void setNoCamo(ItemStack p_82814_1_, byte set) {
+    NBTTagCompound nbttagcompound = p_82814_1_.getTagCompound();
+    if (nbttagcompound == null) {
+      nbttagcompound = new NBTTagCompound();
+      p_82814_1_.setTagCompound(nbttagcompound);
+    } 
+    NBTTagCompound nbttagcompound1 = nbttagcompound.getCompoundTag("display");
+    if (!nbttagcompound.hasKey("display", 10))
+      nbttagcompound.setTag("display", (NBTBase)nbttagcompound1); 
+    nbttagcompound1.setByte("camo", set);
+  }
+  
+  public void surroundWithParticles(EntityPlayer player) {
+    for (int i = 0; i < 8; i++)
+      player.worldObj.spawnParticle("magicCrit", player.posX + (itemRand.nextFloat() - itemRand.nextFloat()), player.posY + (itemRand
+          .nextFloat() - itemRand.nextFloat()), player.posZ + (itemRand.nextFloat() - itemRand.nextFloat()), 0.0D, 0.0D, 0.0D); 
+  }
+  
+  public void changeColor(World worldObj, EntityPlayer player) {
+    int i = MathHelper.floor_double(player.posX);
+    int j = MathHelper.floor_double(player.boundingBox.minY);
+    int k = MathHelper.floor_double(player.posZ);
+    if (worldObj.getBlock(i, j, k) == Blocks.air)
+      j = MathHelper.floor_double(player.boundingBox.minY - 0.1D); 
+    Block m = worldObj.getBlock(i, j, k);
+    int meta = worldObj.getBlockMetadata(i, j, k);
+    int foliage = 0;
+    if (m instanceof BlockGrass) {
+      BlockGrass blockGrass = (BlockGrass)m;
+      foliage = blockGrass.colorMultiplier((IBlockAccess)worldObj, i, j, k);
+    } else if (m instanceof BlockLeaves) {
+      BlockLeaves blockLeaves = (BlockLeaves)m;
+      foliage = blockLeaves.colorMultiplier((IBlockAccess)worldObj, i, j, k);
+    } 
+    if (m instanceof net.minecraft.block.BlockVine)
+      m = this.currentBlock; 
+    if (m != Blocks.air && this.hasChanged && (m != this.currentBlock || meta != this.currentMeta || foliage != this.currentFoliage)) {
+      this.currentBlock = m;
+      this.currentMeta = meta;
+      this.currentFoliage = foliage;
+      IIcon icon = m.getIcon(1, meta);
+      if (icon != null && !(m instanceof BlockGrass) && !(m instanceof BlockLeaves) && !(m instanceof BlockFluidBase) && !(m instanceof BlockTallGrass)) {
+        changeColorFromTexture(icon);
+      } else if (m instanceof BlockGrass) {
+        BlockGrass blockGrass = (BlockGrass)m;
+        int color = blockGrass.colorMultiplier((IBlockAccess)worldObj, i, j, k);
+        icon = m.getIcon(0, meta);
+        Color colour = new Color(color, true);
+        if (colour.getRed() == colour.getGreen() && colour.getRed() == colour.getBlue() && colour.getGreen() == colour.getBlue()) {
+          changeColorFromTexture(icon);
+        } else {
+          setNewR(colour.getRed());
+          setNewG(colour.getGreen());
+          setNewB(colour.getBlue());
+        } 
+      } else if (m instanceof BlockTallGrass) {
+        BlockTallGrass blockTallGrass = (BlockTallGrass)m;
+        int color = blockTallGrass.colorMultiplier((IBlockAccess)worldObj, i, j, k);
+        icon = m.getIcon(0, meta);
+        Color colour = new Color(color, true);
+        if (colour.getRed() == colour.getGreen() && colour.getRed() == colour.getBlue() && colour.getGreen() == colour.getBlue()) {
+          changeColorFromTexture(icon);
+        } else {
+          setNewR(colour.getRed());
+          setNewG(colour.getGreen());
+          setNewB(colour.getBlue());
+        } 
+      } else if (m instanceof BlockLeaves) {
+        BlockLeaves blockLeaves = (BlockLeaves)m;
+        int color = blockLeaves.colorMultiplier((IBlockAccess)worldObj, i, j, k);
+        if (meta == 1 || meta == 5)
+          color = ColorizerFoliage.getFoliageColorPine(); 
+        if (meta == 2 || meta == 6)
+          color = ColorizerFoliage.getFoliageColorBirch(); 
+        icon = m.getIcon(0, meta);
+        Color colour = new Color(color, true);
+        if (colour.getRed() == colour.getGreen() && colour.getRed() == colour.getBlue() && colour.getGreen() == colour.getBlue()) {
+          changeColorFromTexture(icon);
+        } else {
+          setNewR(colour.getRed());
+          setNewG(colour.getGreen());
+          setNewB(colour.getBlue());
+        } 
+      } else if (m instanceof BlockLilyPad) {
+        BlockLilyPad blockLilyPad = (BlockLilyPad)m;
+        int color = blockLilyPad.colorMultiplier((IBlockAccess)worldObj, i, j, k);
+        icon = m.getIcon(0, meta);
+        Color colour = new Color(color, true);
+        if (colour.getRed() == colour.getGreen() && colour.getRed() == colour.getBlue() && colour.getGreen() == colour.getBlue()) {
+          changeColorFromTexture(icon);
+        } else {
+          setNewR(colour.getRed());
+          setNewG(colour.getGreen());
+          setNewB(colour.getBlue());
+        } 
+      } else if (m instanceof BlockFluidBase) {
+        BlockFluidBase blockFluidBase = (BlockFluidBase)m;
+        int color = blockFluidBase.colorMultiplier((IBlockAccess)worldObj, i, j, k);
+        icon = m.getIcon(0, meta);
+        Color colour = new Color(color, true);
+        if (colour.getRed() == colour.getGreen() && colour.getRed() == colour.getBlue() && colour.getGreen() == colour.getBlue()) {
+          changeColorFromTexture(icon);
+        } else {
+          setNewR(colour.getRed());
+          setNewG(colour.getGreen());
+          setNewB(colour.getBlue());
+        } 
+      } 
+    } 
+  }
+  
+  public void changeColorFromTexture(IIcon icon) {
+    SimpleReloadableResourceManager resourceManager = (SimpleReloadableResourceManager)Minecraft.getMinecraft().getResourceManager();
+    Set set = resourceManager.getResourceDomains();
+    Object[] domains = set.toArray();
+    IResource resource = null;
+    for (int i = 0; i < domains.length; i++) {
+      resource = ResourceChecker.getResource(domains[i].toString(), "textures/blocks/" + icon.getIconName() + ".png");
+      if (resource == null) {
+        String[] divided = icon.getIconName().split(":");
+        resource = ResourceChecker.getResource(domains[i].toString(), "textures/blocks/" + divided[1] + ".png");
+      } 
+      if (resource != null)
+        break; 
+    } 
+    if (resource != null) {
+      InputStream stream = resource.getInputStream();
+      int[] rgb = null;
+      try {
+        rgb = ImageTester.main(stream);
+      } catch (Exception e) {
+        e.printStackTrace();
+      } 
+      if (rgb != null) {
+        setNewR(rgb[0]);
+        setNewG(rgb[1]);
+        setNewB(rgb[2]);
+      } 
+    } 
+  }
+  
+  public float getR() {
+    return this.R;
+  }
+  
+  public float getG() {
+    return this.G;
+  }
+  
+  public float getB() {
+    return this.B;
+  }
+  
+  public void setR(float set) {
+    this.R = set;
+  }
+  
+  public void setG(float set) {
+    this.G = set;
+  }
+  
+  public void setB(float set) {
+    this.B = set;
+  }
+  
+  public float getNewR() {
+    return this.NewR;
+  }
+  
+  public float getNewG() {
+    return this.NewG;
+  }
+  
+  public float getNewB() {
+    return this.NewB;
+  }
+  
+  public void setNewR(float set) {
+    this.NewR = set;
+  }
+  
+  public void setNewG(float set) {
+    this.NewG = set;
+  }
+  
+  public void setNewB(float set) {
+    this.NewB = set;
+  }
 }

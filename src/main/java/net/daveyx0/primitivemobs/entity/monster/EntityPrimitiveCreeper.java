@@ -1,286 +1,200 @@
 package net.daveyx0.primitivemobs.entity.monster;
 
-import net.daveyx0.multimob.common.capabilities.CapabilityTameableEntity;
-import net.daveyx0.multimob.common.capabilities.ITameableEntity;
-import net.daveyx0.multimob.util.EntityUtil;
-import net.minecraft.entity.EnumCreatureType;
-import net.minecraft.entity.monster.EntityCreeper;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import net.daveyx0.primitivemobs.entity.ai.EntityAIPrimitiveCreeperSwell;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.EntityAIAttackOnCollide;
+import net.minecraft.entity.ai.EntityAIAvoidEntity;
+import net.minecraft.entity.ai.EntityAIBase;
+import net.minecraft.entity.ai.EntityAIHurtByTarget;
+import net.minecraft.entity.ai.EntityAILookIdle;
+import net.minecraft.entity.ai.EntityAINearestAttackableTarget;
+import net.minecraft.entity.ai.EntityAISwimming;
+import net.minecraft.entity.ai.EntityAIWander;
+import net.minecraft.entity.ai.EntityAIWatchClosest;
+import net.minecraft.entity.effect.EntityLightningBolt;
+import net.minecraft.entity.passive.EntityOcelot;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Items;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.datasync.DataParameter;
-import net.minecraft.network.datasync.DataSerializers;
-import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.world.World;
 
-public class EntityPrimitiveCreeper extends EntityCreeper
-{
-    private int timeSinceIgnited;
-	private int lastActiveTime;
-	
-    private static final DataParameter<Boolean> BABY = EntityDataManager.<Boolean>createKey(EntityPrimitiveCreeper.class, DataSerializers.BOOLEAN);
-    protected int growingAge;
-    protected int forcedAge;
-    protected int forcedAgeTimer;
-    private float ageWidth = -1.0F;
-    private float ageHeight;
-
-	public EntityPrimitiveCreeper(World worldIn)
-    {
-        super(worldIn);
-        this.setSize(0.6F, 1.7F);
-    }
-    
-    /**
-     * Called to update the entity's position/logic.
-     */
-    public void onUpdate()
-    {
-    	//Disable normal explosion`
-    	if(this instanceof EntityFestiveCreeper)
-    	{
-        	timeSinceIgnited = 0;
-    	}
-    	
-        if(this.getAttackTarget() != null )
-        {
-    		ITameableEntity tameable = EntityUtil.getCapability(this, CapabilityTameableEntity.TAMEABLE_ENTITY_CAPABILITY, null);
-    		if(tameable != null && tameable.isTamed() &&  tameable.getFollowState() == 0)
-    		{
-        		this.setIgnitedTime(0);
-        		this.setCreeperState(-1);
-    		}
-        }
-    	
-        super.onUpdate();
-    }
-    
-    /**
-     * Called when the entity is attacked.
-     */
-    public boolean attackEntityFrom(DamageSource source, float amount)
-    {
-		ITameableEntity tameable = EntityUtil.getCapability(this, CapabilityTameableEntity.TAMEABLE_ENTITY_CAPABILITY, null);
-		if(tameable != null && tameable.isTamed())
-		{
-			return source != DamageSource.FIREWORKS && source != DamageSource.IN_WALL  && source != DamageSource.FALL && source != DamageSource.DROWN && super.attackEntityFrom(source, amount);
-		}
-
-        return super.attackEntityFrom(source, amount);
-    }
-    
-    
-    public void setIgnitedTime(int time)
-    {
-    	this.timeSinceIgnited = time;
-    }
-    
-    protected void entityInit()
-    {
-        super.entityInit();
-        this.dataManager.register(BABY, Boolean.valueOf(false));
-    }
-
-    /**
-     * The age value may be negative or positive or zero. If it's negative, it get's incremented on each tick, if it's
-     * positive, it get's decremented each tick. Don't confuse this with EntityLiving.getAge. With a negative value the
-     * Entity is considered a child.
-     */
-    public int getGrowingAge()
-    {
-        if (this.world.isRemote)
-        {
-            return ((Boolean)this.dataManager.get(BABY)).booleanValue() ? -1 : 1;
-        }
-        else
-        {
-            return this.growingAge;
-        }
-    }
-
-    /**
-     * Increases this entity's age, optionally updating {@link #forcedAge}. If the entity is an adult (if the entity's
-     * age is greater than or equal to 0) then the entity's age will be set to {@link #forcedAge}.
-     *  
-     * @param growthSeconds Number of seconds to grow this entity by. The entity's age will be increased by 20 times
-     * this number (i.e. this number converted to ticks).
-     * @param updateForcedAge If true, updates {@link #forcedAge} and {@link #forcedAgeTimer}
-     */
-    public void ageUp(int growthSeconds, boolean updateForcedAge)
-    {
-        int i = this.getGrowingAge();
-        int j = i;
-        i = i + growthSeconds * 20;
-
-        if (i > 0)
-        {
-            i = 0;
-
-            if (j < 0)
-            {
-                this.onGrowingAdult();
-            }
-        }
-
-        int k = i - j;
-        this.setGrowingAge(i);
-
-        if (updateForcedAge)
-        {
-            this.forcedAge += k;
-
-            if (this.forcedAgeTimer == 0)
-            {
-                this.forcedAgeTimer = 40;
-            }
-        }
-
-        if (this.getGrowingAge() == 0)
-        {
-            this.setGrowingAge(this.forcedAge);
-        }
-    }
-
-    /**
-     * Increases this entity's age. If the entity is an adult (if the entity's age is greater than or equal to 0) then
-     * the entity's age will be set to {@link #forcedAge}. This method does not update {@link #forcedAge}.
-     */
-    public void addGrowth(int growth)
-    {
-        this.ageUp(growth, false);
-    }
-
-    /**
-     * The age value may be negative or positive or zero. If it's negative, it get's incremented on each tick, if it's
-     * positive, it get's decremented each tick. With a negative value the Entity is considered a child.
-     */
-    public void setGrowingAge(int age)
-    {
-        this.dataManager.set(BABY, Boolean.valueOf(age < 0));
-        this.growingAge = age;
-        this.setScaleForAge(this.isChild());
-    }
-
-    /**
-     * (abstract) Protected helper method to write subclass entity data to NBT.
-     */
-    public void writeEntityToNBT(NBTTagCompound compound)
-    {
-        super.writeEntityToNBT(compound);
-        compound.setInteger("Age", this.getGrowingAge());
-        compound.setInteger("ForcedAge", this.forcedAge);
-    }
-
-    /**
-     * (abstract) Protected helper method to read subclass entity data from NBT.
-     */
-    public void readEntityFromNBT(NBTTagCompound compound)
-    {
-        super.readEntityFromNBT(compound);
-        this.setGrowingAge(compound.getInteger("Age"));
-        this.forcedAge = compound.getInteger("ForcedAge");
-    }
-
-    public void notifyDataManagerChange(DataParameter<?> key)
-    {
-        if (BABY.equals(key))
-        {
-            this.setScaleForAge(this.isChild());
-        }
-
-        super.notifyDataManagerChange(key);
-    }
-
-    /**
-     * Called frequently so the entity can update its state every tick as required. For example, zombies and skeletons
-     * use this to react to sunlight and start to burn.
-     */
-    public void onLivingUpdate()
-    {
-        super.onLivingUpdate();
-
-        if (this.world.isRemote)
-        {
-            if (this.forcedAgeTimer > 0)
-            {
-                if (this.forcedAgeTimer % 4 == 0)
-                {
-                    this.world.spawnParticle(EnumParticleTypes.VILLAGER_HAPPY, this.posX + (double)(this.rand.nextFloat() * this.width * 2.0F) - (double)this.width, this.posY + 0.5D + (double)(this.rand.nextFloat() * this.height), this.posZ + (double)(this.rand.nextFloat() * this.width * 2.0F) - (double)this.width, 0.0D, 0.0D, 0.0D);
-                }
-
-                --this.forcedAgeTimer;
-            }
-        }
-        else
-        {
-            int i = this.getGrowingAge();
-
-            if (i < 0)
-            {
-                ++i;
-                this.setGrowingAge(i);
-
-                if (i == 0)
-                {
-                    this.onGrowingAdult();
-                }
-            }
-            else if (i > 0)
-            {
-                --i;
-                this.setGrowingAge(i);
-            }
-        }
-        
-		ITameableEntity tameable = EntityUtil.getCapability(this, CapabilityTameableEntity.TAMEABLE_ENTITY_CAPABILITY, null);
-		if(tameable != null && tameable.isTamed() && this.isChild())
-		{
-			CapabilityTameableEntity.EventHandler.resetEntityTargetAI(this);
-		}
-    }
-
-    /**
-     * This is called when Entity's growing age timer reaches 0 (negative values are considered as a child, positive as
-     * an adult)
-     */
-    protected void onGrowingAdult()
-    {
-    }
-
-    /**
-     * If Animal, checks if the age timer is negative
-     */
-    public boolean isChild()
-    {
-        return this.getGrowingAge() < 0;
-    }
-
-    /**
-     * "Sets the scale for an ageable entity according to the boolean parameter, which says if it's a child."
-     */
-    public void setScaleForAge(boolean child)
-    {
-        this.setScale(child ? 0.5F : 1.0F);
-    }
-
-    /**
-     * Sets the width and height of the entity.
-     */
-    protected final void setSize(float width, float height)
-    {
-        boolean flag = this.ageWidth > 0.0F;
-        this.ageWidth = width;
-        this.ageHeight = height;
-
-        if (!flag)
-        {
-            this.setScale(1.0F);
-        }
-    }
-
-    protected final void setScale(float scale)
-    {
-        super.setSize(this.ageWidth * scale, this.ageHeight * scale);
-    }
+public class EntityPrimitiveCreeper extends EntityPrimitiveMob {
+  private int lastActiveTime;
   
+  public int timeSinceIgnited;
+  
+  private int fuseTime = 30;
+  
+  private int explosionRadius = 3;
+  
+  private static final String __OBFID = "CL_00001684";
+  
+  public EntityPrimitiveCreeper(World p_i1733_1_) {
+    super(p_i1733_1_);
+    this.tasks.addTask(1, (EntityAIBase)new EntityAISwimming((EntityLiving)this));
+    this.tasks.addTask(2, (EntityAIBase)new EntityAIPrimitiveCreeperSwell(this));
+    this.tasks.addTask(3, (EntityAIBase)new EntityAIAvoidEntity(this, EntityOcelot.class, 6.0F, 1.0D, 1.2D));
+    this.tasks.addTask(4, (EntityAIBase)new EntityAIAttackOnCollide(this, 1.0D, false));
+    this.tasks.addTask(5, (EntityAIBase)new EntityAIWander(this, 0.8D));
+    this.tasks.addTask(6, (EntityAIBase)new EntityAIWatchClosest((EntityLiving)this, EntityPlayer.class, 8.0F));
+    this.tasks.addTask(6, (EntityAIBase)new EntityAILookIdle((EntityLiving)this));
+    this.targetTasks.addTask(1, (EntityAIBase)new EntityAINearestAttackableTarget(this, EntityPlayer.class, 0, true));
+    this.targetTasks.addTask(2, (EntityAIBase)new EntityAIHurtByTarget(this, false));
+  }
+  
+  protected void applyEntityAttributes() {
+    super.applyEntityAttributes();
+    getEntityAttribute(SharedMonsterAttributes.movementSpeed).setBaseValue(0.5D);
+  }
+  
+  public boolean isAIEnabled() {
+    return true;
+  }
+  
+  public int getMaxSafePointTries() {
+    return (getAttackTarget() == null) ? 3 : (3 + (int)(getHealth() - 1.0F));
+  }
+  
+  protected void fall(float p_70069_1_) {
+    super.fall(p_70069_1_);
+    this.timeSinceIgnited = (int)(this.timeSinceIgnited + p_70069_1_ * 1.5F);
+    if (this.timeSinceIgnited > this.fuseTime - 5)
+      this.timeSinceIgnited = this.fuseTime - 5; 
+  }
+  
+  protected void entityInit() {
+    super.entityInit();
+    this.dataWatcher.addObject(16, Byte.valueOf((byte)-1));
+    this.dataWatcher.addObject(17, Byte.valueOf((byte)0));
+    this.dataWatcher.addObject(18, Byte.valueOf((byte)0));
+  }
+  
+  public void writeEntityToNBT(NBTTagCompound p_70014_1_) {
+    super.writeEntityToNBT(p_70014_1_);
+    if (this.dataWatcher.getWatchableObjectByte(17) == 1)
+      p_70014_1_.setBoolean("powered", true); 
+    p_70014_1_.setShort("Fuse", (short)this.fuseTime);
+    p_70014_1_.setByte("ExplosionRadius", (byte)this.explosionRadius);
+    p_70014_1_.setBoolean("ignited", func_146078_ca());
+  }
+  
+  public void readEntityFromNBT(NBTTagCompound p_70037_1_) {
+    super.readEntityFromNBT(p_70037_1_);
+    this.dataWatcher.updateObject(17, Byte.valueOf((byte)(p_70037_1_.getBoolean("powered") ? 1 : 0)));
+    if (p_70037_1_.hasKey("Fuse", 99))
+      this.fuseTime = p_70037_1_.getShort("Fuse"); 
+    if (p_70037_1_.hasKey("ExplosionRadius", 99))
+      this.explosionRadius = p_70037_1_.getByte("ExplosionRadius"); 
+    if (p_70037_1_.getBoolean("ignited"))
+      func_146079_cb(); 
+  }
+  
+  public void onUpdate() {
+    if (isEntityAlive()) {
+      this.lastActiveTime = this.timeSinceIgnited;
+      if (func_146078_ca())
+        setCreeperState(1); 
+      int i = getCreeperState();
+      if (i > 0 && this.timeSinceIgnited == 0)
+        playSound("creeper.primed", 1.0F, 0.5F); 
+      this.timeSinceIgnited += i;
+      if (this.timeSinceIgnited < 0)
+        this.timeSinceIgnited = 0; 
+      if (this.timeSinceIgnited >= this.fuseTime) {
+        this.timeSinceIgnited = this.fuseTime;
+        func_146077_cc();
+      } 
+    } 
+    super.onUpdate();
+  }
+  
+  protected String getHurtSound() {
+    return "mob.creeper.say";
+  }
+  
+  protected String getDeathSound() {
+    return "mob.creeper.death";
+  }
+  
+  public void onDeath(DamageSource p_70645_1_) {
+    super.onDeath(p_70645_1_);
+    if (p_70645_1_.getEntity() instanceof net.minecraft.entity.monster.EntitySkeleton) {
+      int i = Item.getIdFromItem(Items.record_13);
+      int j = Item.getIdFromItem(Items.record_wait);
+      int k = i + this.rand.nextInt(j - i + 1);
+      dropItem(Item.getItemById(k), 1);
+    } 
+  }
+  
+  public boolean attackEntityAsMob(Entity p_70652_1_) {
+    return true;
+  }
+  
+  public boolean getPowered() {
+    return (this.dataWatcher.getWatchableObjectByte(17) == 1);
+  }
+  
+  @SideOnly(Side.CLIENT)
+  public float getCreeperFlashIntensity(float p_70831_1_) {
+    return (this.lastActiveTime + (this.timeSinceIgnited - this.lastActiveTime) * p_70831_1_) / (this.fuseTime - 2);
+  }
+  
+  protected Item getDropItem() {
+    return Items.gunpowder;
+  }
+  
+  public int getCreeperState() {
+    return this.dataWatcher.getWatchableObjectByte(16);
+  }
+  
+  public void setCreeperState(int p_70829_1_) {
+    this.dataWatcher.updateObject(16, Byte.valueOf((byte)p_70829_1_));
+  }
+  
+  public void onStruckByLightning(EntityLightningBolt p_70077_1_) {
+    super.onStruckByLightning(p_70077_1_);
+    this.dataWatcher.updateObject(17, Byte.valueOf((byte)1));
+  }
+  
+  protected boolean interact(EntityPlayer p_70085_1_) {
+    ItemStack itemstack = p_70085_1_.inventory.getCurrentItem();
+    if (itemstack != null && itemstack.getItem() == Items.flint_and_steel) {
+      this.worldObj.playSoundEffect(this.posX + 0.5D, this.posY + 0.5D, this.posZ + 0.5D, "fire.ignite", 1.0F, this.rand.nextFloat() * 0.4F + 0.8F);
+      p_70085_1_.swingItem();
+      if (!this.worldObj.isRemote) {
+        func_146079_cb();
+        itemstack.damageItem(1, (EntityLivingBase)p_70085_1_);
+        return true;
+      } 
+    } 
+    return super.interact(p_70085_1_);
+  }
+  
+  private void func_146077_cc() {
+    if (!this.worldObj.isRemote) {
+      boolean flag = this.worldObj.getGameRules().getGameRuleBooleanValue("mobGriefing");
+      if (getPowered()) {
+        this.worldObj.createExplosion((Entity)this, this.posX, this.posY, this.posZ, (this.explosionRadius * 2), flag);
+      } else {
+        this.worldObj.createExplosion((Entity)this, this.posX, this.posY, this.posZ, this.explosionRadius, flag);
+      } 
+      setDead();
+    } 
+  }
+  
+  public boolean func_146078_ca() {
+    return (this.dataWatcher.getWatchableObjectByte(18) != 0);
+  }
+  
+  public void func_146079_cb() {
+    this.dataWatcher.updateObject(18, Byte.valueOf((byte)1));
+  }
 }

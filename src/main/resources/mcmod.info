@@ -1,16 +1,16 @@
 [
 {
   "modid": "primitivemobs",
-  "name": "Primitive Mobs",
+  "name": "Primitive Mobs Rozmir's Fork",
   "description": "A mod with familiar mobs.",
-  "version": "1.2.3",
-  "mcversion": "${mcversion}",
+  "version": "v 1.0",
+  "mcversion": "1.7.10",
   "url": "",
   "updateUrl": "",
   "authorList": ["Daveyx0"],
-  "credits": "KodaichiZero for SpiderFamily, KodasCreepers and BrainSlime. Gibea for TravelingMerchant Model. TehPhailed for Blazing Juggernaut Model. Choonster for 1.12 code reference.",
+  "credits": "See credits file inside .jar archive",
   "logoFile": "",
   "screenshots": [],
-  "dependencies": [mod_minecraftForge]
+  "dependencies": []
 }
 ]

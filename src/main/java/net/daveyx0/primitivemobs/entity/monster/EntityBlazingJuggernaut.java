@@ -1,297 +1,154 @@
 package net.daveyx0.primitivemobs.entity.monster;
 
-import javax.annotation.Nullable;
-
-import net.daveyx0.multimob.entity.IMultiMob;
-import net.daveyx0.primitivemobs.core.PrimitiveMobsLootTables;
-import net.minecraft.entity.EntityLiving;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.EnumCreatureType;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import net.daveyx0.primitivemobs.client.PrimitiveMobsAchievementPage;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.SharedMonsterAttributes;
-import net.minecraft.entity.ai.EntityAIBase;
-import net.minecraft.entity.ai.EntityAIHurtByTarget;
-import net.minecraft.entity.ai.EntityAILookIdle;
-import net.minecraft.entity.ai.EntityAIMoveTowardsRestriction;
-import net.minecraft.entity.ai.EntityAINearestAttackableTarget;
-import net.minecraft.entity.ai.EntityAIWander;
-import net.minecraft.entity.ai.EntityAIWatchClosest;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.SoundEvents;
-import net.minecraft.pathfinding.PathNodeType;
+import net.minecraft.init.Items;
+import net.minecraft.item.Item;
+import net.minecraft.stats.StatBase;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.EnumParticleTypes;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.datafix.DataFixer;
+import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 
-public class EntityBlazingJuggernaut extends EntityMob implements IMultiMob {
-
-	 /** Random offset used in floating behaviour */
-    private float heightOffset = 0.5F;
-    /** ticks until heightOffset is randomized */
-    private int heightOffsetUpdateTime;
-
-    public EntityBlazingJuggernaut(World worldIn)
-    {
-        super(worldIn);
-        this.setPathPriority(PathNodeType.WATER, -1.0F);
-        this.setPathPriority(PathNodeType.LAVA, 8.0F);
-        this.setPathPriority(PathNodeType.DANGER_FIRE, 0.0F);
-        this.setPathPriority(PathNodeType.DAMAGE_FIRE, 0.0F);
-        this.isImmuneToFire = true;
-        this.experienceValue = 10;
-    }
-    
-    protected void applyEntityAttributes()
-    {
-        super.applyEntityAttributes();
-        this.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(5.0D);
-        this.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.23000000417232513D);
-        this.getEntityAttribute(SharedMonsterAttributes.FOLLOW_RANGE).setBaseValue(48.0D);
-    }
-
-    public static void registerFixesBlaze(DataFixer fixer)
-    {
-        EntityLiving.registerFixesMob(fixer, EntityBlazingJuggernaut.class);
-    }
-
-    protected void initEntityAI()
-    {
-        this.tasks.addTask(4, new EntityBlazingJuggernaut.AIChargeAttack(this));
-        this.tasks.addTask(5, new EntityAIMoveTowardsRestriction(this, 1.0D));
-        this.tasks.addTask(7, new EntityAIWander(this, 1.0D));
-        this.tasks.addTask(8, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
-        this.tasks.addTask(8, new EntityAILookIdle(this));
-        this.targetTasks.addTask(1, new EntityAIHurtByTarget(this, true, new Class[0]));
-        this.targetTasks.addTask(2, new EntityAINearestAttackableTarget(this, EntityPlayer.class, true));
-    }
-
-    /**
-     * returns if this entity triggers Block.onEntityWalking on the blocks they walk on. used for spiders and wolves to
-     * prevent them from trampling crops
-     */
-    protected boolean canTriggerWalking()
-    {
-        return false;
-    }
-    
-    /**
-     * Gets the pitch of living sounds in living entities.
-     */
-    protected float getSoundPitch()
-    {
-        return (this.rand.nextFloat() - this.rand.nextFloat()) * 0.2F;
-    }
-    
-    protected SoundEvent getAmbientSound()
-    {
-        return SoundEvents.ENTITY_BLAZE_AMBIENT;
-    }
-
-    protected SoundEvent getHurtSound()
-    {
-        return SoundEvents.ENTITY_BLAZE_HURT;
-    }
-
-    protected SoundEvent getDeathSound()
-    {
-        return SoundEvents.ENTITY_BLAZE_DEATH;
-    }
-    
-    @SideOnly(Side.CLIENT)
-    public int getBrightnessForRender()
-    {
-        return 15728880;
-    }
-
-    /**
-     * Gets how bright this entity is.
-     */
-    public float getBrightness()
-    {
-        return 1.0F;
-    }
-    
-    /**
-     * Called frequently so the entity can update its state every tick as required. For example, zombies and skeletons
-     * use this to react to sunlight and start to burn.
-     */
-    public void onLivingUpdate()
-    {
-    	
-        if (!this.onGround && this.motionY < 0.0D)
-        {
-            this.motionY *= 0.6D;
-        }
-
-        if (this.getEntityWorld().isRemote)
-        {
-            if (this.rand.nextInt(24) == 0 && !this.isSilent())
-            {
-                this.getEntityWorld().playSound(this.posX + 0.5D, this.posY + 0.5D, this.posZ + 0.5D, SoundEvents.ENTITY_BLAZE_BURN, this.getSoundCategory(), 1.0F + this.rand.nextFloat(), this.rand.nextFloat() * 0.7F + 0.3F, false);
-            }
-
-            for (int i = 0; i < 2; ++i)
-            {
-                this.getEntityWorld().spawnParticle(EnumParticleTypes.SMOKE_LARGE, this.posX + (this.rand.nextDouble() - 0.5D) * (double)this.width, this.posY + this.rand.nextDouble() * (double)this.height, this.posZ + (this.rand.nextDouble() - 0.5D) * (double)this.width, 0.0D, 0.0D, 0.0D, new int[0]);
-            }
-        }
-
-        super.onLivingUpdate();
-    }
-
-    protected void updateAITasks()
-    {
-        if (this.isWet())
-        {
-            this.attackEntityFrom(DamageSource.DROWN, 1.0F);
-        }
-
-        --this.heightOffsetUpdateTime;
-
-        if (this.heightOffsetUpdateTime <= 0)
-        {
-            this.heightOffsetUpdateTime = 100;
-            this.heightOffset = 0.5F + (float)this.rand.nextGaussian() * 3.0F;
-        }
-
-        EntityLivingBase entitylivingbase = this.getAttackTarget();
-
-        if (entitylivingbase != null && entitylivingbase.posY + (double)entitylivingbase.getEyeHeight() > this.posY + (double)this.getEyeHeight() + (double)this.heightOffset)
-        {
-            this.motionY += (0.30000001192092896D - this.motionY) * 0.30000001192092896D;
-            this.isAirBorne = true;
-        }
-
-        super.updateAITasks();
-    }
-    
-    @Nullable
-    protected ResourceLocation getLootTable()
-    {
-        return PrimitiveMobsLootTables.ENTITIES_BLAZINGJUGGERNAUT;
-    }
-    
-
-    public void fall(float distance, float damageMultiplier)
-    {
-    }
-    
-    /**
-     * Returns true if the entity is on fire. Used by render to add the fire effect on rendering.
-     */
-    public boolean isBurning()
-    {
-        return false;
-    }
-    
-    /**
-     * Checks to make sure the light is not too bright where the mob is spawning
-     */
-    protected boolean isValidLightLevel()
-    {
-        return true;
-    }
-    
-    static class AIChargeAttack extends EntityAIBase
-    {
-        private final EntityBlazingJuggernaut blaze;
-        private int attackCooldown;
-
-        public AIChargeAttack(EntityBlazingJuggernaut blazeIn)
-        {
-            this.blaze = blazeIn;
-            this.setMutexBits(3);
-        }
-
-        /**
-         * Returns whether the EntityAIBase should begin execution.
-         */
-        public boolean shouldExecute()
-        {
-            EntityLivingBase entitylivingbase = this.blaze.getAttackTarget();
-            return entitylivingbase != null && entitylivingbase.isEntityAlive();
-        }
-
-        /**
-         * Execute a one shot task or start executing a continuous task
-         */
-        public void startExecuting()
-        {
-            this.attackCooldown = 0;
-        }
-
-        /**
-         * Resets the task
-         */
-        public void resetTask()
-        {
-            
-        }
-
-        /**
-         * Updates the task
-         */
-        public void updateTask()
-        {
-            EntityLivingBase entitylivingbase = this.blaze.getAttackTarget();
-            double d0 = this.blaze.getDistanceSq(entitylivingbase);
-
-            ++this.attackCooldown;
-            if (d0 < 5.0D)
-            {
-                if (this.attackCooldown > 10)
-                {
-                    this.attackCooldown = 0;
-                    this.blaze.attackEntityAsMob(entitylivingbase);
-                }
-
-                this.blaze.getMoveHelper().setMoveTo(entitylivingbase.posX, entitylivingbase.posY, entitylivingbase.posZ, 1.0D);
-                
-                if(entitylivingbase.posY < this.blaze.posY)
-                {
-                	this.blaze.motionY -= 0.1D;
-                }
-            }
-            else if (d0 < 30.0D)
-            {
-                double d1 = entitylivingbase.posX - this.blaze.posX;
-                double d2 = entitylivingbase.getEntityBoundingBox().minY + (double)(entitylivingbase.height / 2.0F) - (this.blaze.posY + (double)(this.blaze.height / 2.0F));
-                double d3 = entitylivingbase.posZ - this.blaze.posZ;
-
-                    if (this.attackCooldown > 5)
-                    {
-                        //this.getEntityWorld().playAuxSFXAtEntity((EntityPlayer)null, 1009, (int)this.posX, (int)this.posY, (int)this.posZ, 0);
-                        
-                        this.blaze.motionX += (Math.signum(d1) * 0.5D - this.blaze.motionX) * 0.8D;
-                        this.blaze.motionY += (Math.signum(d2) * 0.699999988079071D - this.blaze.motionY) * 0.8D;
-                        this.blaze.motionZ += (Math.signum(d3) * 0.5D - this.blaze.motionZ) * 0.8D;
-                        float f = (float)(Math.atan2(this.blaze.motionZ, this.blaze.motionX) * 180.0D / Math.PI) - 90.0F;
-                        //float f1 = MathHelper.wrapDegrees(f - this.blaze.rotationYaw);
-                        this.blaze.moveForward = 1.5F;;
-                        
-                        attackCooldown = 0;
-                    }
-
-                this.blaze.getLookHelper().setLookPositionWithEntity(entitylivingbase, 10.0F, 10.0F);
-            }
-            else
-            {
-                this.blaze.getNavigator().clearPath();
-                this.blaze.getMoveHelper().setMoveTo(entitylivingbase.posX, entitylivingbase.posY, entitylivingbase.posZ, 1.0D);
-            }
-
-            super.updateTask();
-        }
-    }
-    
-    public boolean isCreatureType(EnumCreatureType type, boolean forSpawnCount)
-    {
-    	if(type == EnumCreatureType.MONSTER){return false;}
-    	return super.isCreatureType(type, forSpawnCount);
-    }
+public class EntityBlazingJuggernaut extends EntityMob {
+  private float heightOffset = 0.5F;
+  
+  private int heightOffsetUpdateTime;
+  
+  private int attackCooldown = 0;
+  
+  private static final String __OBFID = "CL_00001682";
+  
+  public EntityBlazingJuggernaut(World p_i1731_1_) {
+    super(p_i1731_1_);
+    this.isImmuneToFire = true;
+    this.experienceValue = 10;
+  }
+  
+  protected void applyEntityAttributes() {
+    super.applyEntityAttributes();
+    getEntityAttribute(SharedMonsterAttributes.attackDamage).setBaseValue(6.0D);
+  }
+  
+  protected void entityInit() {
+    super.entityInit();
+    this.dataWatcher.addObject(16, new Byte((byte)0));
+  }
+  
+  protected String getLivingSound() {
+    return "mob.blaze.breathe";
+  }
+  
+  protected float getSoundPitch() {
+    return (this.rand.nextFloat() - this.rand.nextFloat()) * 0.2F;
+  }
+  
+  protected String getHurtSound() {
+    return "mob.blaze.hit";
+  }
+  
+  protected String getDeathSound() {
+    return "mob.blaze.death";
+  }
+  
+  @SideOnly(Side.CLIENT)
+  public int getBrightnessForRender(float p_70070_1_) {
+    return 15728880;
+  }
+  
+  public void onDeath(DamageSource par1DamageSource) {
+    if (getEntityToAttack() != null && getEntityToAttack() instanceof EntityPlayer && par1DamageSource == DamageSource.drown) {
+      EntityPlayer var3 = (EntityPlayer)getEntityToAttack();
+      if (var3 != null)
+        var3.addStat((StatBase)PrimitiveMobsAchievementPage.blazingJugger, 1); 
+    } 
+    super.onDeath(par1DamageSource);
+  }
+  
+  public float getBrightness(float p_70013_1_) {
+    return 1.0F;
+  }
+  
+  public void onLivingUpdate() {
+    if (!this.worldObj.isRemote) {
+      if (isWet())
+        attackEntityFrom(DamageSource.drown, 1.0F); 
+      this.heightOffsetUpdateTime--;
+      if (this.heightOffsetUpdateTime <= 0) {
+        this.heightOffsetUpdateTime = 100;
+        this.heightOffset = 0.5F + (float)this.rand.nextGaussian() * 3.0F;
+      } 
+      if (getEntityToAttack() != null && (getEntityToAttack()).posY + getEntityToAttack().getEyeHeight() > this.posY + getEyeHeight() + this.heightOffset)
+        this.motionY += (0.30000001192092896D - this.motionY) * 0.30000001192092896D; 
+    } 
+    if (this.rand.nextInt(24) == 0)
+      this.worldObj.playSoundEffect(this.posX + 0.5D, this.posY + 0.5D, this.posZ + 0.5D, "fire.fire", 1.0F + this.rand.nextFloat(), this.rand.nextFloat() * 0.7F + 0.3F); 
+    if (!this.onGround && this.motionY < 0.0D)
+      this.motionY *= 0.6D; 
+    for (int i = 0; i < 2; i++)
+      this.worldObj.spawnParticle("largesmoke", this.posX + (this.rand.nextDouble() - 0.5D) * this.width, this.posY + this.rand.nextDouble() * this.height, this.posZ + (this.rand.nextDouble() - 0.5D) * this.width, 0.0D, 0.0D, 0.0D); 
+    super.onLivingUpdate();
+  }
+  
+  protected void attackEntity(Entity p_70785_1_, float p_70785_2_) {
+    if (p_70785_2_ < 2.0F && p_70785_1_.boundingBox.maxY > this.boundingBox.minY && p_70785_1_.boundingBox.minY < this.boundingBox.maxY) {
+      attackEntityAsMob(p_70785_1_);
+    } else if (p_70785_2_ < 30.0F) {
+      double d0 = p_70785_1_.posX - this.posX;
+      double d1 = p_70785_1_.boundingBox.maxY + (p_70785_1_.height / 2.0F) - this.posY + (this.height / 1.5F);
+      double d2 = p_70785_1_.posZ - this.posZ;
+      this.attackCooldown++;
+      if (this.attackCooldown > 10) {
+        this.motionX += (Math.signum(d0) * 0.5D - this.motionX) * 0.5D;
+        this.motionY += (Math.signum(d1) * 0.699999988079071D - this.motionY) * 0.5D;
+        this.motionZ += (Math.signum(d2) * 0.5D - this.motionZ) * 0.5D;
+        float f = (float)(Math.atan2(this.motionZ, this.motionX) * 180.0D / Math.PI) - 90.0F;
+        float f1 = MathHelper.wrapAngleTo180_float(f - this.rotationYaw);
+        this.moveForward = 0.75F;
+        this.rotationYaw += f1;
+        this.attackCooldown = 0;
+      } 
+      this.hasAttacked = true;
+    } 
+  }
+  
+  protected void fall(float p_70069_1_) {}
+  
+  protected Item getDropItem() {
+    return Items.blaze_powder;
+  }
+  
+  public boolean isBurning() {
+    return func_70845_n();
+  }
+  
+  protected void dropFewItems(boolean p_70628_1_, int p_70628_2_) {
+    if (p_70628_1_) {
+      int j = this.rand.nextInt(3 + p_70628_2_);
+      for (int k = 0; k < j; k++)
+        dropItem(Items.blaze_powder, 1); 
+    } 
+  }
+  
+  public boolean func_70845_n() {
+    return ((this.dataWatcher.getWatchableObjectByte(16) & 0x1) != 0);
+  }
+  
+  public void func_70844_e(boolean p_70844_1_) {
+    byte b0 = this.dataWatcher.getWatchableObjectByte(16);
+    if (p_70844_1_) {
+      b0 = (byte)(b0 | 0x1);
+    } else {
+      b0 = (byte)(b0 & 0xFFFFFFFE);
+    } 
+    this.dataWatcher.updateObject(16, Byte.valueOf(b0));
+  }
+  
+  protected boolean isValidLightLevel() {
+    return true;
+  }
 }

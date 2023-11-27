@@ -1,45 +1,40 @@
 package net.daveyx0.primitivemobs.client.renderer.entity;
 
-import net.daveyx0.primitivemobs.client.models.ModelChameleon;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.daveyx0.primitivemobs.entity.passive.EntityChameleon;
-import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.renderer.entity.RenderLiving;
-import net.minecraft.client.renderer.entity.RenderManager;
-import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import org.lwjgl.opengl.GL11;
 
 @SideOnly(Side.CLIENT)
-public class RenderChameleon<T extends EntityLiving> extends RenderLiving<EntityChameleon>
-{
-    private static final ResourceLocation CHAMELEON_TEXTURES = new ResourceLocation("primitivemobs", "textures/entity/chameleon/chameleon.png");
-
-    public RenderChameleon(RenderManager renderManagerIn)
-    {
-        super(renderManagerIn, new ModelChameleon(), 0.4f);
-    }
-
-    /**
-     * Returns the location of an entity's texture. Doesn't seem to be called unless you call Render.bindEntityTexture.
-     */
-    protected ResourceLocation getEntityTexture(EntityChameleon entity)
-    {
-        return CHAMELEON_TEXTURES;
-    }
-    
-    @Override
-    public void doRender(EntityChameleon entity, double x, double y, double z, float entityYaw, float partialTicks)
-    {
-        
-        float[] RGB = entity.getSkinRGB();
-        
-        GlStateManager.pushMatrix();   
-        GlStateManager.color(RGB[0]/255.0F, RGB[1]/255.0F, RGB[2]/255.0F, 1.0F);
-        GlStateManager.popMatrix();
-        
-        super.doRender(entity, x, y, z, entityYaw, partialTicks);
-
-    }
-   
+public class RenderChameleon extends RenderLiving {
+  ModelBase chameleon;
+  
+  public RenderChameleon(ModelBase par1ModelBase, float par2) {
+    super(par1ModelBase, par2);
+    this.chameleon = par1ModelBase;
+    setRenderPassModel(this.chameleon);
+  }
+  
+  protected ResourceLocation getChameleonTextures(EntityChameleon par1EntityChameleon) {
+    ResourceLocation chameleonTexture = new ResourceLocation("primitivemobs:textures/entity/chameleon/chameleon.png");
+    return chameleonTexture;
+  }
+  
+  protected ResourceLocation getEntityTexture(Entity entity) {
+    return getChameleonTextures((EntityChameleon)entity);
+  }
+  
+  protected int setAlterations(EntityChameleon chameleon, int par2, float par3) {
+    GL11.glColor4f(chameleon.getR() / 255.0F, chameleon.getG() / 255.0F, chameleon.getB() / 255.0F, 1.0F);
+    return 1;
+  }
+  
+  protected int shouldRenderPass(EntityLivingBase par1EntityLivingBase, int par2, float par3) {
+    return setAlterations((EntityChameleon)par1EntityLivingBase, par2, par3);
+  }
 }

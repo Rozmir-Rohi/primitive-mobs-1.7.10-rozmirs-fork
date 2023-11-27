@@ -1,248 +1,273 @@
 package net.daveyx0.primitivemobs.entity.monster;
 
 import java.util.List;
-
-import javax.annotation.Nullable;
-
-import net.daveyx0.multimob.common.capabilities.CapabilityTameableEntity;
-import net.daveyx0.multimob.common.capabilities.ITameableEntity;
-import net.daveyx0.multimob.util.EntityUtil;
-import net.daveyx0.primitivemobs.core.PrimitiveMobsLootTables;
+import java.util.UUID;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.EnumCreatureType;
 import net.minecraft.entity.SharedMonsterAttributes;
-import net.minecraft.entity.ai.EntityAIAttackMelee;
-import net.minecraft.entity.ai.EntityAIAvoidEntity;
-import net.minecraft.entity.ai.EntityAIBase;
-import net.minecraft.entity.ai.EntityAICreeperSwell;
-import net.minecraft.entity.ai.EntityAILookIdle;
-import net.minecraft.entity.ai.EntityAINearestAttackableTarget;
-import net.minecraft.entity.ai.EntityAISwimming;
-import net.minecraft.entity.ai.EntityAIWander;
-import net.minecraft.entity.ai.EntityAIWatchClosest;
+import net.minecraft.entity.effect.EntityLightningBolt;
 import net.minecraft.entity.monster.EntityCreeper;
 import net.minecraft.entity.monster.EntityMob;
-import net.minecraft.entity.passive.EntityOcelot;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.MobEffects;
+import net.minecraft.init.Items;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.server.management.PreYggdrasilConverter;
+import net.minecraft.util.DamageSource;
+import net.minecraft.world.EnumDifficulty;
 import net.minecraft.world.World;
 
 public class EntitySupportCreeper extends EntityPrimitiveCreeper {
-
-	public EntitySupportCreeper(World worldIn) {
-		super(worldIn);
-
-	}
-	
-    protected void initEntityAI()
-    {
-        this.tasks.addTask(1, new EntityAISwimming(this));
-        this.tasks.addTask(2, new EntitySupportCreeper.EntityAIBuffMob(this));
-        this.tasks.addTask(3, new EntityAIAvoidEntity(this, EntityPlayer.class, 6.0F, 1.0D, 1.2D));
-        this.tasks.addTask(3, new EntityAIAvoidEntity(this, EntityOcelot.class, 6.0F, 1.0D, 1.2D));
-        this.tasks.addTask(4, new EntityAIAttackMelee(this, 1.0D, false));
-        this.tasks.addTask(5, new EntityAIWander(this, 0.8D));
-        this.tasks.addTask(6, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
-        this.tasks.addTask(6, new EntityAILookIdle(this));
-    }
-    
-    protected void applyEntityAttributes()
-    {
-        super.applyEntityAttributes();
-        this.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.25D);
-    }
-    
-    public void onUpdate()
-    {
-    	if(this.getHealth() < this.getMaxHealth()/2)
-    	{
-			while(this.tasks.taskEntries.stream()
-			.filter(taskEntry -> taskEntry.action instanceof EntityAIAvoidEntity).findFirst().isPresent())
-			{
-				this.tasks.taskEntries.stream().filter(taskEntry -> taskEntry.action instanceof EntityAIAvoidEntity)
-				.findFirst().ifPresent(taskEntry -> this.tasks.removeTask(taskEntry.action));
-			}
-			this.tasks.addTask(2, new EntityAICreeperSwell(this));
-    		this.targetTasks.addTask(1, new EntityAINearestAttackableTarget(this, EntityPlayer.class, true));
-    	}
-    	super.onUpdate();
-    }
-    
-    public class EntityAIBuffMob extends EntityAIBase
-    {
-
-    	EntitySupportCreeper creeper;
-    	EntityLivingBase mobIdol;
-    	int strength;
-    	
-		public EntityAIBuffMob(EntitySupportCreeper entitySupportCreeper) {
-
-			creeper = entitySupportCreeper;
-			mobIdol = null;
-			strength = 1;
-		}
-		/**
-		* Returns whether the EntityAIBase should begin execution.
-		*/
-		public boolean shouldExecute()
-		{
-			ITameableEntity tameable = EntityUtil.getCapability(this.creeper, CapabilityTameableEntity.TAMEABLE_ENTITY_CAPABILITY, null);
-			if(tameable != null && tameable.isTamed() && tameable.getFollowState() == 0)
-			{
-				return false;
-			}
-	        return true;
-		}
-
-		/**
-	    * Returns whether an in-progress EntityAIBase should continue executing
-		*/
-		public boolean continueExecuting()
-	    {
-			ITameableEntity tameable = EntityUtil.getCapability(this.creeper, CapabilityTameableEntity.TAMEABLE_ENTITY_CAPABILITY, null);
-			if(tameable != null && tameable.isTamed() && tameable.getFollowState() == 0)
-			{
-				return false;
-			}
-			return this.mobIdol.isEntityAlive() && this.creeper.getDistanceSq(this.mobIdol) <= 25D * 25D;
-	    }
-		
-	    /**
-	     * Execute a one shot task or start executing a continuous task
-	     */
-	    public void startExecuting()
-	    {
-	    	this.mobIdol = this.findMobToSupport();
-	    }
-
-	    /**
-	     * Resets the task
-	     */
-	    public void resetTask()
-	    {
-	        this.mobIdol = null;
-	    }
-	    
-	    public EntityLivingBase findMobToSupport()
-	    {
-			ITameableEntity tameable = EntityUtil.getCapability(this.creeper, CapabilityTameableEntity.TAMEABLE_ENTITY_CAPABILITY, null);
-			if(tameable != null && tameable.isTamed() && tameable.getFollowState() != 0)
-			{
-				if(tameable.getOwner(this.creeper) != null && tameable.getOwner(this.creeper).getDistanceSq(this.creeper) < 30)
-				{
-					return tameable.getOwner(this.creeper);
-				}
-			}
-			else if(tameable == null || !tameable.isTamed())
-			{
-	        List<Entity> list = this.creeper.getEntityWorld().getEntitiesWithinAABBExcludingEntity(this.creeper, this.creeper.getEntityBoundingBox().expand(10.0D, 4.0D, 10.0D));
-	        EntityMob mob = null;
-	        double d0 = Double.MAX_VALUE;
-
-	        for (Entity entity : list)
-	        {
-	        	if(entity != null && entity instanceof EntityMob && !(entity instanceof EntitySupportCreeper))
-	        	{
-	        		EntityMob mob1 = (EntityMob)entity;
-	        		
-	        		if(mob1.getActivePotionEffects().isEmpty())
-	        		{
-	        			double d1 = this.creeper.getDistanceSq(mob1);
-
-	        			if (d1 <= d0)
-	        			{
-	        				d0 = d1;
-                    		mob = mob1;
-	        			}
-	        		}
-	        	}
-	        }
-	        
-	        if(mob != null)
-	        {
-	        	 return mob;
-	        }
-			}
-	        return null;
-	    }
-	    
-	    /**
-	     * Updates the task
-	     */
-	    public void updateTask()
-	    {
-	    	if(mobIdol == null)
-	    	{
-	    		this.mobIdol = this.findMobToSupport();
-	    	}
-	    	else
-	    	{
-	    	if(this.creeper.getPowered()) {strength = 2;}
-	    	else {strength = 1;}
-	    	
-	        if (this.creeper.getDistance(this.mobIdol) > 2D)
-	        {
-	            this.creeper.getNavigator().tryMoveToEntityLiving(this.mobIdol, 1F);
-	        }
-	        
-            if(this.mobIdol instanceof EntityCreeper)
-            {
-            	EntityCreeper entitycreeper = (EntityCreeper)mobIdol;
-            	
-            	if(!entitycreeper.getPowered() && !getEntityWorld().isRemote)	
-            	{
-            		entitycreeper.onStruckByLightning(null);
-            	}
-            	
-            	if(entitycreeper.getActivePotionEffect(MobEffects.FIRE_RESISTANCE) == null)
-            	{
-            		entitycreeper.addPotionEffect(new PotionEffect(MobEffects.FIRE_RESISTANCE, 60, strength));
-            	}
-            	
-            	if(this.creeper.getActivePotionEffect(MobEffects.FIRE_RESISTANCE) == null)
-            	{
-            		this.creeper.addPotionEffect(new PotionEffect(MobEffects.FIRE_RESISTANCE, 60, strength));
-            	}
-            }
-            else
-            {
-                if(this.mobIdol instanceof EntityTrollager)
-                {
-                	EntityTrollager entitytrollager = (EntityTrollager)mobIdol;
-                	entitytrollager.isBeingSupported = true;
-                }
-            	if(mobIdol.getActivePotionEffect(MobEffects.STRENGTH) == null)
-            	{
-            		mobIdol.addPotionEffect(new PotionEffect(MobEffects.STRENGTH, 60, strength));
-            	}
-            	if(mobIdol.getActivePotionEffect(MobEffects.SPEED) == null)
-            	{
-            		mobIdol.addPotionEffect(new PotionEffect(MobEffects.SPEED, 60, strength));
-            	}
-            	if(mobIdol.getActivePotionEffect(MobEffects.FIRE_RESISTANCE) == null)
-            	{
-            		mobIdol.addPotionEffect(new PotionEffect(MobEffects.FIRE_RESISTANCE, 60, strength));
-            	}
-            }
-            
-            if(this.creeper.getActivePotionEffect(MobEffects.SPEED) == null)
-            {
-            	creeper.addPotionEffect(new PotionEffect(MobEffects.SPEED, 60, strength));
-            }
-	    	}
-	        
-	    }
-    	
-    }
-    
-    @Nullable
-    protected ResourceLocation getLootTable()
-    {
-        return PrimitiveMobsLootTables.ENTITIES_SUPPORTCREEPER;
-    }
-
-
+  EntityMob supportMob;
+  
+  int followDelay;
+  
+  public EntitySupportCreeper(World world) {
+    super(world);
+    setPlayerOwned(false);
+    this.supportMob = null;
+    this.followDelay = 0;
+    this.isImmuneToFire = true;
+  }
+  
+  protected void entityInit() {
+    super.entityInit();
+    this.dataWatcher.addObject(22, new Integer(0));
+    this.dataWatcher.addObject(19, Byte.valueOf((byte)0));
+    this.dataWatcher.addObject(20, Byte.valueOf((byte)0));
+    this.dataWatcher.addObject(21, "");
+  }
+  
+  protected void applyEntityAttributes() {
+    super.applyEntityAttributes();
+    getEntityAttribute(SharedMonsterAttributes.maxHealth).setBaseValue(20.0D);
+  }
+  
+  public void onLivingUpdate() {
+    super.onLivingUpdate();
+    if (this.supportMob == null && !getPlayerOwned()) {
+      this.supportMob = findMob();
+    } else if (this.supportMob != null) {
+      setCreeperState(0);
+      this.timeSinceIgnited = 0;
+      if (--this.followDelay <= 0) {
+        this.followDelay = 10;
+        getNavigator().tryMoveToEntityLiving((Entity)this.supportMob, 0.5D);
+      } 
+      if (getDistanceSqToEntity((Entity)this.supportMob) < 2.0D)
+        getNavigator().clearPathEntity(); 
+      if (!(this.supportMob instanceof EntityCreeper)) {
+        this.supportMob.addPotionEffect(new PotionEffect(Potion.damageBoost.id, 60, 1));
+        this.supportMob.addPotionEffect(new PotionEffect(Potion.moveSpeed.id, 60, 1));
+        this.supportMob.addPotionEffect(new PotionEffect(Potion.fireResistance.id, 60, 1));
+        addPotionEffect(new PotionEffect(Potion.moveSpeed.id, 60, 1));
+      } else if (this.supportMob instanceof EntityCreeper) {
+        EntityCreeper entitycreeper = (EntityCreeper)this.supportMob;
+        if (!entitycreeper.getPowered() && this.worldObj.getClosestPlayerToEntity((Entity)this, 10.0D) != null && !this.worldObj.isRemote) {
+          EntityLightningBolt var6 = new EntityLightningBolt(this.worldObj, entitycreeper.posX, entitycreeper.posY, entitycreeper.posZ);
+          this.worldObj.spawnEntityInWorld((Entity)var6);
+        } 
+        this.supportMob.addPotionEffect(new PotionEffect(Potion.fireResistance.id, 60, 1));
+      } 
+      if (this.supportMob.isDead || this.supportMob.getHealth() < 0.0F)
+        this.supportMob = null; 
+    } 
+    EntityPlayer entityplayer2 = this.worldObj.getClosestPlayer(this.posX, this.posY, this.posZ, 5.0D);
+    if (entityplayer2 != null && !getPlayerOwned())
+      entityplayer2.addPotionEffect(new PotionEffect(Potion.moveSlowdown.id, 60, 1)); 
+    EntityMob mob = findMob();
+    if (mob != null && getPlayerOwned())
+      mob.addPotionEffect(new PotionEffect(Potion.moveSlowdown.id, 60, 1)); 
+    if (getPlayerOwned() && !getSitting()) {
+      EntityPlayer entityplayer = this.worldObj.getClosestPlayer(this.posX, this.posY, this.posZ, 12.0D);
+      EntityPlayer entityplayer1 = this.worldObj.getClosestPlayer(this.posX, this.posY, this.posZ, 25.0D);
+      if (entityplayer != null && entityplayer.getUniqueID().toString().equals(getOwnerUUID())) {
+        if (--this.followDelay <= 0) {
+          this.followDelay = 10;
+          getNavigator().tryMoveToEntityLiving((Entity)entityplayer, 0.5D);
+        } 
+        if (getDistanceSqToEntity((Entity)entityplayer) < 2.0D)
+          getNavigator().clearPathEntity(); 
+        entityplayer.addPotionEffect(new PotionEffect(Potion.damageBoost.id, 60, 1));
+        entityplayer.addPotionEffect(new PotionEffect(Potion.moveSpeed.id, 60, 1));
+        entityplayer.addPotionEffect(new PotionEffect(Potion.fireResistance.id, 60, 1));
+        addPotionEffect(new PotionEffect(Potion.moveSpeed.id, 60, 1));
+      } else if (entityplayer1 != null && entityplayer == null && !getSitting() && entityplayer1.getUniqueID().toString().equals(getOwnerUUID())) {
+        setPosition(entityplayer1.posX, entityplayer1.posY, entityplayer1.posZ);
+      } 
+    } 
+    if (getPlayerOwned()) {
+      if (this.rand.nextInt(200) == 0)
+        this.worldObj.spawnParticle("heart", this.posX + (this.rand.nextFloat() - this.rand.nextFloat()), this.posY + this.rand.nextFloat() + 1.0D, this.posZ + (this.rand.nextFloat() - this.rand.nextFloat()), 1.0D, 1.0D, 1.0D); 
+      getEntityAttribute(SharedMonsterAttributes.maxHealth).setBaseValue(30.0D);
+      setCreeperState(0);
+    } 
+    if (getPlayerOwned() && getSitting())
+      getNavigator().clearPathEntity(); 
+    if (!this.worldObj.isRemote && this.worldObj.difficultySetting == EnumDifficulty.PEACEFUL && !getPlayerOwned())
+      setDead(); 
+    int var1 = getGrowingAge();
+    if (var1 < 0) {
+      var1++;
+      setGrowingAge(var1);
+    } else if (var1 > 0) {
+      var1--;
+      setGrowingAge(var1);
+    } 
+  }
+  
+  public void onDeath(DamageSource par1DamageSource) {
+    super.onDeath(par1DamageSource);
+  }
+  
+  public boolean attackEntityFrom(DamageSource par1DamageSource, float par2) {
+    if (par1DamageSource.damageType == "inWall" && getPlayerOwned())
+      return false; 
+    if (par1DamageSource.damageType == "fall" && getPlayerOwned())
+      return false; 
+    return super.attackEntityFrom(par1DamageSource, par2);
+  }
+  
+  public boolean interact(EntityPlayer entityplayer) {
+    ItemStack itemstack = entityplayer.inventory.getCurrentItem();
+    if (itemstack != null && itemstack.getItem() == Items.melon && !entityplayer.isSneaking()) {
+      if (--itemstack.stackSize == 0)
+        entityplayer.inventory.setInventorySlotContents(entityplayer.inventory.currentItem, null); 
+      for (int i = 0; i < 8; i++)
+        this.worldObj.spawnParticle("heart", this.posX + (this.rand.nextFloat() - this.rand.nextFloat()), this.posY + (this.rand.nextFloat() - this.rand.nextFloat()), this.posZ + (this.rand.nextFloat() - this.rand.nextFloat()), 0.0D, 0.0D, 0.0D); 
+      setHealth(getMaxHealth());
+      return true;
+    } 
+    if (itemstack == null && getPlayerOwned() && entityplayer.isSneaking() && entityplayer.getUniqueID().toString().equals(getOwnerUUID())) {
+      for (int i = 0; i < 8; i++)
+        this.worldObj.spawnParticle("note", this.posX + (this.rand.nextFloat() - this.rand.nextFloat()), this.posY + (this.rand.nextFloat() - this.rand.nextFloat()), this.posZ + (this.rand.nextFloat() - this.rand.nextFloat()), 0.0D, 0.0D, 0.0D); 
+      if (!getSitting()) {
+        setSitting(true);
+      } else {
+        setSitting(false);
+      } 
+    } 
+    if (itemstack != null && itemstack.getItem() == Items.gunpowder && !entityplayer.isSneaking() && entityplayer.getUniqueID().toString().equals(getOwnerUUID())) {
+      if (--itemstack.stackSize == 0)
+        entityplayer.inventory.setInventorySlotContents(entityplayer.inventory.currentItem, null); 
+      for (int i = 0; i < 8; i++)
+        this.worldObj.spawnParticle("heart", this.posX + (this.rand.nextFloat() - this.rand.nextFloat()), this.posY + (this.rand.nextFloat() - this.rand.nextFloat()), this.posZ + (this.rand.nextFloat() - this.rand.nextFloat()), 0.0D, 0.0D, 0.0D); 
+      setHealth(getMaxHealth());
+      return true;
+    } 
+    return true;
+  }
+  
+  protected Item getDropItem() {
+    return Items.fire_charge;
+  }
+  
+  public EntityMob findMob() {
+    List<Entity> list = this.worldObj.getEntitiesWithinAABBExcludingEntity((Entity)this, this.boundingBox.expand(12.0D, 3.0D, 12.0D));
+    for (int i = 0; i < list.size(); i++) {
+      Entity entity = list.get(i);
+      if (entity != null)
+        if (entity instanceof EntityMob && !(entity instanceof EntitySupportCreeper)) {
+          EntityMob entitymob = (EntityMob)entity;
+          return entitymob;
+        }  
+    } 
+    return null;
+  }
+  
+  public int getGrowingAge() {
+    return this.dataWatcher.getWatchableObjectInt(22);
+  }
+  
+  public void setGrowingAge(int par1) {
+    this.dataWatcher.updateObject(22, Integer.valueOf(par1));
+  }
+  
+  public boolean getSitting() {
+    return ((this.dataWatcher.getWatchableObjectByte(19) & 0x1) != 0);
+  }
+  
+  public void setSitting(boolean par1) {
+    if (par1) {
+      this.dataWatcher.updateObject(19, Byte.valueOf((byte)1));
+    } else {
+      this.dataWatcher.updateObject(19, Byte.valueOf((byte)0));
+    } 
+  }
+  
+  public boolean getPlayerOwned() {
+    return ((this.dataWatcher.getWatchableObjectByte(20) & 0x1) != 0);
+  }
+  
+  public void setPlayerOwned(boolean par1) {
+    if (par1) {
+      this.dataWatcher.updateObject(20, Byte.valueOf((byte)1));
+    } else {
+      this.dataWatcher.updateObject(20, Byte.valueOf((byte)0));
+    } 
+  }
+  
+  public String getOwnerUUID() {
+    return this.dataWatcher.getWatchableObjectString(21);
+  }
+  
+  public void setOwnerUUID(String p_152115_1_) {
+    this.dataWatcher.updateObject(21, p_152115_1_);
+  }
+  
+  public EntityLivingBase getOwner() {
+    try {
+      UUID uuid = UUID.fromString(getOwnerUUID());
+      return (uuid == null) ? null : (EntityLivingBase)this.worldObj.func_152378_a(uuid);
+    } catch (IllegalArgumentException illegalargumentexception) {
+      return null;
+    } 
+  }
+  
+  public boolean func_152114_e(EntityLivingBase p_152114_1_) {
+    return (p_152114_1_ == getOwner());
+  }
+  
+  public boolean canDespawn() {
+    if (getPlayerOwned())
+    	{return false;} 
+    return true;
+  }
+  
+  public void writeEntityToNBT(NBTTagCompound par1NBTTagCompound) {
+    super.writeEntityToNBT(par1NBTTagCompound);
+    par1NBTTagCompound.setInteger("Age", getGrowingAge());
+    par1NBTTagCompound.setBoolean("Tamed", getPlayerOwned());
+    par1NBTTagCompound.setBoolean("Sitting", getSitting());
+    if (getOwnerUUID() == null) {
+      par1NBTTagCompound.setString("OwnerUUID", "");
+    } else {
+      par1NBTTagCompound.setString("OwnerUUID", getOwnerUUID());
+    } 
+  }
+  
+  public void readEntityFromNBT(NBTTagCompound par1NBTTagCompound) {
+    super.readEntityFromNBT(par1NBTTagCompound);
+    setGrowingAge(par1NBTTagCompound.getInteger("Age"));
+    setPlayerOwned(par1NBTTagCompound.getBoolean("Tamed"));
+    setSitting(par1NBTTagCompound.getBoolean("Sitting"));
+    String s = "";
+    if (par1NBTTagCompound.hasKey("OwnerUUID", 8)) {
+      s = par1NBTTagCompound.getString("OwnerUUID");
+    } else {
+      String s1 = par1NBTTagCompound.getString("Owner");
+      s = PreYggdrasilConverter.func_152719_a(s1);
+    } 
+    if (s.length() > 0) {
+      setOwnerUUID(s);
+      setPlayerOwned(true);
+    } 
+  }
+  
+  public boolean isChild() {
+    return (getGrowingAge() < 0);
+  }
 }

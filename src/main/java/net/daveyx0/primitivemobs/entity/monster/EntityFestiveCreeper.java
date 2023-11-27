@@ -1,147 +1,121 @@
 package net.daveyx0.primitivemobs.entity.monster;
 
-
-import javax.annotation.Nullable;
-
-import net.daveyx0.multimob.entity.IMultiMob;
-import net.daveyx0.multimob.entity.ai.EntityAIBackOffFromEntity;
-import net.daveyx0.primitivemobs.core.PrimitiveMobsLootTables;
-import net.daveyx0.primitivemobs.entity.item.EntityPrimitiveTNTPrimed;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.EnumCreatureType;
-import net.minecraft.entity.SharedMonsterAttributes;
-import net.minecraft.entity.ai.EntityAIAttackMelee;
-import net.minecraft.entity.ai.EntityAIAvoidEntity;
-import net.minecraft.entity.ai.EntityAIBase;
-import net.minecraft.entity.ai.EntityAIHurtByTarget;
-import net.minecraft.entity.ai.EntityAILookIdle;
-import net.minecraft.entity.ai.EntityAINearestAttackableTarget;
-import net.minecraft.entity.ai.EntityAISwimming;
-import net.minecraft.entity.ai.EntityAIWander;
-import net.minecraft.entity.ai.EntityAIWatchClosest;
-import net.minecraft.entity.passive.EntityOcelot;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import net.daveyx0.primitivemobs.client.PrimitiveMobsAchievementPage;
+import net.minecraft.block.Block;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.item.EntityTNTPrimed;
+import net.minecraft.entity.monster.EntityCreeper;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.SoundEvents;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
+import net.minecraft.item.Item;
+import net.minecraft.stats.StatBase;
+import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
 
-public class EntityFestiveCreeper extends EntityPrimitiveCreeper implements IMultiMob {
-	
-	public EntityFestiveCreeper(World worldIn) {
-		super(worldIn);
-		isImmuneToFire = true;
-	}
-
-    protected void initEntityAI()
-    {
-        this.tasks.addTask(1, new EntityAISwimming(this));
-        this.tasks.addTask(2, new EntityFestiveCreeper.EntityAIThrowTNT(this));
-        this.tasks.addTask(3, new EntityAIBackOffFromEntity(this, 7.5D, true));
-        this.tasks.addTask(4, new EntityAIAvoidEntity(this, EntityOcelot.class, 6.0F, 1.0D, 1.2D));
-        this.tasks.addTask(5, new EntityAIAttackMelee(this, 1.0D, false));
-        this.tasks.addTask(6, new EntityAIWander(this, 0.8D));
-        this.tasks.addTask(7, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
-        this.tasks.addTask(7, new EntityAILookIdle(this));
-        this.targetTasks.addTask(1, new EntityAINearestAttackableTarget(this, EntityPlayer.class, true));
-        this.targetTasks.addTask(2, new EntityAIHurtByTarget(this, false, new Class[0]));
-    }
-    
-    protected void applyEntityAttributes()
-    {
-        super.applyEntityAttributes();
-        this.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.35D);
-    }
-    
-    public class EntityAIThrowTNT extends EntityAIBase
-    {
-    	EntityFestiveCreeper creeper;
-    	EntityLivingBase target;
-    	float power;
-    	int attackCooldown;
-    	
-    	public EntityAIThrowTNT(EntityFestiveCreeper entityFestiveCreeper) {
-    		creeper = entityFestiveCreeper;
-    		power = 1.5F;
-    		attackCooldown = 0;
-		}
-
-		/**
-		* Returns whether the EntityAIBase should begin execution.
-		*/
-		public boolean shouldExecute()
-		{
-	        target = this.creeper.getAttackTarget();
-
-	        if (target == null)
-	        {
-	            return false;
-	        }
-	        else if (!target.isEntityAlive())
-	        {
-	            return false;
-	        }
-	        else
-	        {
-	        	if(this.creeper.getDistance(target) > 2.0D && this.creeper.getDistanceSq(target) < 144D && this.creeper.canEntityBeSeen(target))
-	        	{
-	        		return true;
-	        	}
-	        	
-	        	return false;
-	        }
-		}
-		
-		/**
-	    * Returns whether an in-progress EntityAIBase should continue executing
-		*/
-		public boolean continueExecuting()
-	    {
-			return shouldExecute();
-	    }
-
-	    /**
-	     * Resets the task
-	     */
-	    public void resetTask()
-	    {
-	    	target = null;
-	    	attackCooldown = 0;
-	    }
-	    
-	    /**
-	     * Updates the task
-	     */
-	    public void updateTask()
-	    {
-	    	if(this.creeper.getPowered()){power = 3;};
-	    	
-	    	if(target != null && --attackCooldown <= 0)
-	    	{
-	    		if(!getEntityWorld().isRemote)
-	    		{
-	    			EntityPrimitiveTNTPrimed tnt = new EntityPrimitiveTNTPrimed(this.creeper.getEntityWorld(), creeper.posX, creeper.posY, creeper.posZ, this.creeper, power, 30);
-	    			tnt.setLocationAndAngles(this.creeper.posX, this.creeper.posY, this.creeper.posZ, this.creeper.rotationYaw, 0.0F);
-	    			tnt.motionX = (this.target.posX - tnt.posX) / 18D;
-	    			tnt.motionY = (this.target.posY - tnt.posY) / 18D + 0.5D;
-	    			tnt.motionZ = (this.target.posZ - creeper.posZ) / 18D;
-	    			this.creeper.getEntityWorld().spawnEntity(tnt);
-	    		}
-	    		this.creeper.playSound(SoundEvents.ENTITY_TNT_PRIMED, this.creeper.getSoundVolume(), this.creeper.getSoundPitch());
-	    		attackCooldown = 60;
-	    	}
-	    }
-    }
-    
-    @Nullable
-    protected ResourceLocation getLootTable()
-    {
-        return PrimitiveMobsLootTables.ENTITIES_FESTIVECREEPER;
-    }
-    
-    public boolean isCreatureType(EnumCreatureType type, boolean forSpawnCount)
-    {
-    	if(type == EnumCreatureType.MONSTER){return false;}
-    	return super.isCreatureType(type, forSpawnCount);
-    }
-
+public class EntityFestiveCreeper extends EntityCreeper {
+  private int path;
+  
+  private int lastActiveTime;
+  
+  private int timeSinceIgnited;
+  
+  private int fuseTime = 30;
+  
+  private int explosionRadius = 3;
+  
+  public EntityFestiveCreeper(World par1World) {
+    super(par1World);
+    this.isImmuneToFire = true;
+  }
+  
+  public boolean attackEntityFrom(DamageSource par1DamageSource, float par2) {
+    if (par1DamageSource.damageType == "explosion")
+      return false; 
+    return super.attackEntityFrom(par1DamageSource, par2);
+  }
+  
+  public boolean canDespawn() {
+    return true;
+  }
+  
+  public void onDeath(DamageSource par1DamageSource) {
+    if (par1DamageSource.getEntity() != null && par1DamageSource.getEntity() instanceof EntityPlayer) {
+      EntityPlayer var3 = (EntityPlayer)par1DamageSource.getEntity();
+      if (var3 != null)
+        var3.addStat((StatBase)PrimitiveMobsAchievementPage.redCreepSurvive, 1); 
+    } 
+    super.onDeath(par1DamageSource);
+  }
+  
+  protected void fall(float par1) {
+    super.fall(par1);
+  }
+  
+  public void onUpdate() {
+    this.timeSinceIgnited = 0;
+    if (getAttackTarget() != null)
+      if (!this.worldObj.isRemote) {
+        boolean var2 = this.worldObj.getGameRules().getGameRuleBooleanValue("mobGriefing");
+        EntityPlayer entityplayer = this.worldObj.getClosestPlayer(this.posX, this.posY, this.posZ, 10.0D);
+        EntityPlayer entityplayer1 = this.worldObj.getClosestPlayer(this.posX, this.posY, this.posZ, 8.0D);
+        EntityPlayer entityplayer2 = this.worldObj.getClosestPlayer(this.posX, this.posY, this.posZ, 4.5D);
+        EntityPlayer entityplayer3 = this.worldObj.getClosestPlayer(this.posX, this.posY, this.posZ, 4.0D);
+        EntityPlayer entityplayer4 = this.worldObj.getClosestPlayer(this.posX, this.posY, this.posZ, 6.5D);
+        if (entityplayer != null) {
+          if (entityplayer2 != null && this.rand.nextInt(20) == 0) {
+            int i = (int)this.posX;
+            int j = (int)this.posY;
+            int k = (int)this.posZ;
+            if ((this.worldObj.getBlock(i, j, k) == Blocks.air || this.worldObj.getBlock(i, j, k) == Blocks.snow) && this.worldObj.getBlock(i, j - 1, k) == Blocks.air)
+              this.worldObj.setBlock(i, j, k, (Block)Blocks.fire, 0, 0); 
+          } 
+          if (entityplayer3 != null && getHealth() >= 5.0F) {
+            this.motionX = entityplayer3.posX - this.posX;
+            this.motionZ = entityplayer3.posZ - this.posZ;
+            double d = -0.7D / (this.motionX * this.motionX + this.motionZ * this.motionZ + 0.0625D);
+            this.motionX *= d;
+            this.motionZ *= d;
+          } else if (entityplayer1 != null || entityplayer != null) {
+            this.path++;
+            if (entityplayer4 != null) {
+              this.motionX = 0.0D;
+              this.motionZ = 0.0D;
+            } 
+            if (this.path == this.fuseTime && canEntityBeSeen((Entity)entityplayer) && !this.worldObj.isRemote && var2) {
+              EntityTNTPrimed entity = new EntityTNTPrimed(this.worldObj);
+              entity.setLocationAndAngles(this.posX, this.posY, this.posZ, this.rotationYaw, 0.0F);
+              this.worldObj.spawnEntityInWorld((Entity)entity);
+              entity.motionX = (entityplayer.posX - this.posX) / 20.0D;
+              entity.motionY = (entityplayer.posY - this.posY) / 20.0D + 0.5D;
+              entity.motionZ = (entityplayer.posZ - this.posZ) / 20.0D;
+              entity.fuse = 55;
+              this.worldObj.playSoundAtEntity((Entity)entity, "random.fuse", 1.0F, 0.5F);
+              this.path = 0;
+              this.fuseTime = 50;
+            } else if (this.path >= this.fuseTime) {
+              this.path = this.fuseTime - 1;
+            } 
+            this.hasAttacked = true;
+          } 
+        } 
+      }  
+    setCreeperState(0);
+    super.onUpdate();
+  }
+  
+  public String getTexture() {
+    return "/mods/PrimitiveMobs/models/redcreeper.png";
+  }
+  
+  protected Item getDropItem() {
+    return Items.flint_and_steel;
+  }
+  
+  @SideOnly(Side.CLIENT)
+  public float getCreeperFlashIntensity(float par1) {
+    return (this.lastActiveTime + (this.timeSinceIgnited - this.lastActiveTime) * par1) / (this.fuseTime - 2);
+  }
 }

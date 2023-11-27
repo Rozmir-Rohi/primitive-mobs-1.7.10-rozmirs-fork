@@ -1,129 +1,144 @@
 package net.daveyx0.primitivemobs.client.models;
 
-import net.daveyx0.primitivemobs.entity.passive.EntityLostMiner;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
-import net.minecraft.client.model.ModelVillager;
 import net.minecraft.entity.Entity;
-import net.minecraft.util.math.MathHelper;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.util.MathHelper;
 
-	@SideOnly(Side.CLIENT)
-	public class ModelLostMiner extends ModelVillager
-	{
-	    
-		public ModelRenderer ArmLeftShoulder;
-	    public ModelRenderer ArmLeftHand;
-	    public ModelRenderer ArmRightShoulder;
-	    public ModelRenderer ArmRightHand;
-	    public ModelRenderer Hat1;
-	    public ModelRenderer Hat2;
-
-	    public ModelLostMiner(float scale)
-	    {
-	        this(scale, 0.0F, 64, 64);
-	    }
-
-	    public ModelLostMiner(float scale, float p_i1164_2_, int width, int height)
-	    {
-	        super(scale, p_i1164_2_, width, height);
-	        ArmLeftShoulder = new ModelRenderer(this, 44, 0).setTextureSize(width, height);
-	        ArmLeftShoulder.addBox(2F, -4F, -1.5F, 4, 4, 4);
-	        ArmLeftShoulder.setRotationPoint(2F, 3F, 1F);
-	        ArmLeftShoulder.setTextureSize(64, 64);
-	        ArmLeftShoulder.mirror = true;
-	        setRotation(ArmLeftShoulder, 1.396263F, 0F, 0F);
-	        ArmLeftHand = new ModelRenderer(this, 44, 9).setTextureSize(width, height);;
-	        ArmLeftHand.addBox(2F, -8F, -5.5F, 4, 8, 4);
-	        ArmLeftHand.setRotationPoint(2F, 3F, 1F);
-	        ArmLeftHand.setTextureSize(64, 64);
-	        ArmLeftHand.mirror = true;
-	        setRotation(ArmLeftHand, 1.396263F, 0F, 0F);
-	        ArmRightShoulder = new ModelRenderer(this, 44, 0).setTextureSize(width, height);;
-	        ArmRightShoulder.addBox(-6F, -4F, -1.5F, 4, 4, 4);
-	        ArmRightShoulder.setRotationPoint(-2F, 3F, 1F);
-	        ArmRightShoulder.setTextureSize(64, 64);
-	        ArmRightShoulder.mirror = true;
-	        setRotation(ArmRightShoulder, 1.396263F, 0F, 0F);
-	        ArmRightHand = new ModelRenderer(this, 44, 9).setTextureSize(width, height);;
-	        ArmRightHand.addBox(-6F, -8F, -5.5F, 4, 8, 4);
-	        ArmRightHand.setRotationPoint(-2F, 3F, 1F);
-	        ArmRightHand.setTextureSize(64, 64);
-	        ArmRightHand.mirror = true;
-	        setRotation(ArmRightHand, 1.396263F, 0F, 0F);
-	        Hat1 = new ModelRenderer(this, 28, 51).setTextureSize(width, height);;
-	        Hat1.addBox(-4.5F, -10.5F, -4.5F, 9, 4, 9);
-	        //Hat1.setRotationPoint(0F, 0.5F, 0F);
-	        Hat1.setTextureSize(64, 64);
-	        Hat1.mirror = true;
-	        setRotation(Hat1, 0F, 0F, 0F);
-	        Hat2 = new ModelRenderer(this, 28, 46).setTextureSize(width, height);;
-	        Hat2.addBox(-1F, -10F, -5.6F, 2, 2, 1);
-	        //Hat2.setRotationPoint(0F, 1F, 0F);
-	        Hat2.setTextureSize(64, 64);
-	        Hat2.mirror = true;
-	        setRotation(Hat2, 0F, 0F, 0F);
-	        
-	        this.villagerHead.addChild(Hat1);
-	        this.villagerHead.addChild(Hat2);
-	    }
-
-	    /**
-	     * Sets the models various rotation angles then renders the model.
-	     */
-	    public void render(Entity entityIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scale)
-	    {
-	        this.setRotationAngles(limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scale, entityIn);
-	        this.villagerHead.render(scale);
-	        this.villagerBody.render(scale);
-	        this.rightVillagerLeg.render(scale);
-	        this.leftVillagerLeg.render(scale);
-	        if(entityIn instanceof EntityLostMiner)
-	        {
-	        	EntityLostMiner lostMiner = (EntityLostMiner)entityIn;
-	        	
-	        	if(lostMiner.isSaved())
-	        	{
-	    	        this.villagerArms.render(scale);
-	        	}
-	        	else
-	        	{
-	    	        this.ArmLeftShoulder.render(scale);
-	    	        this.ArmLeftHand.render(scale);
-	    	        this.ArmRightShoulder.render(scale);
-	    	        this.ArmRightHand.render(scale);
-	        	}
-	        }
-
-	    }
-	    
-	    private void setRotation(ModelRenderer model, float x, float y, float z)
-	    {
-	      model.rotateAngleX = x;
-	      model.rotateAngleY = y;
-	      model.rotateAngleZ = z;
-	    }
-
-	    /**
-	     * Sets the model's various rotation angles. For bipeds, par1 and par2 are used for animating the movement of arms
-	     * and legs, where par1 represents the time(so that arms and legs swing back and forth) and par2 represents how
-	     * "far" arms and legs can swing at most.
-	     */
-	    public void setRotationAngles(float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scaleFactor, Entity entityIn)
-	    {
-	        this.villagerHead.rotateAngleY = netHeadYaw * 0.017453292F;
-	        this.villagerHead.rotateAngleX = headPitch * 0.017453292F;
-	        this.villagerArms.rotationPointY = 3.0F;
-	        this.villagerArms.rotationPointZ = -1.0F;
-	        this.villagerArms.rotateAngleX = -0.75F;
-	        this.rightVillagerLeg.rotateAngleX = MathHelper.cos(limbSwing * 0.6662F) * 1.4F * limbSwingAmount * 0.5F;
-	        this.leftVillagerLeg.rotateAngleX = MathHelper.cos(limbSwing * 0.6662F + (float)Math.PI) * 1.4F * limbSwingAmount * 0.5F;
-	        this.rightVillagerLeg.rotateAngleY = 0.0F;
-	        this.leftVillagerLeg.rotateAngleY = 0.0F;
-	        
-	        this.ArmLeftShoulder.rotateAngleX = MathHelper.cos(limbSwing * 0.6662F) * 1.4F * limbSwingAmount * 0.5F + 1.396263F;
-	        this.ArmLeftHand.rotateAngleX = this.ArmLeftShoulder.rotateAngleX;
-	        this.ArmRightShoulder.rotateAngleX = MathHelper.cos(limbSwing * 0.6662F + (float)Math.PI) * 1.4F * limbSwingAmount * 0.5F + 1.396263F;
-	        this.ArmRightHand.rotateAngleX = this.ArmRightShoulder.rotateAngleX;
-	    }
-	}
+@SideOnly(Side.CLIENT)
+public class ModelLostMiner extends ModelBase {
+  ModelRenderer Head;
+  
+  ModelRenderer Body;
+  
+  ModelRenderer LegLeft;
+  
+  ModelRenderer LegRight;
+  
+  ModelRenderer ArmLeftShoulder;
+  
+  ModelRenderer ArmLeftHand;
+  
+  ModelRenderer ArmRightShoulder;
+  
+  public ModelRenderer ArmRightHand;
+  
+  ModelRenderer Nose;
+  
+  ModelRenderer Hat1;
+  
+  ModelRenderer Hat2;
+  
+  public ModelLostMiner() {
+    this.textureWidth = 128;
+    this.textureHeight = 64;
+    this.Head = new ModelRenderer(this, 0, 0);
+    this.Head.addBox(-4.0F, -9.5F, -5.1F, 8, 10, 8);
+    this.Head.setRotationPoint(0.0F, 0.0F, 0.0F);
+    this.Head.setTextureSize(128, 64);
+    this.Head.mirror = true;
+    setRotation(this.Head, 0.0F, 0.0F, 0.0F);
+    this.Body = new ModelRenderer(this, 17, 20);
+    this.Body.addBox(-5.0F, 0.0F, -3.5F, 8, 12, 5);
+    this.Body.setRotationPoint(1.0F, 0.5F, 0.0F);
+    this.Body.setTextureSize(128, 64);
+    this.Body.mirror = true;
+    setRotation(this.Body, 0.0F, 0.0F, 0.0F);
+    this.LegLeft = new ModelRenderer(this, 0, 22);
+    this.LegLeft.addBox(-2.1F, 0.0F, -2.0F, 4, 12, 4);
+    this.LegLeft.setRotationPoint(2.0F, 12.0F, -1.0F);
+    this.LegLeft.setTextureSize(128, 64);
+    this.LegLeft.mirror = true;
+    setRotation(this.LegLeft, 0.0F, 0.0F, 0.0F);
+    this.LegRight = new ModelRenderer(this, 0, 22);
+    this.LegRight.addBox(-1.9F, 0.0F, -2.0F, 4, 12, 4);
+    this.LegRight.setRotationPoint(-2.0F, 12.0F, -1.0F);
+    this.LegRight.setTextureSize(128, 64);
+    this.LegRight.mirror = false;
+    setRotation(this.LegRight, 0.0F, 0.0F, 0.0F);
+    this.ArmLeftShoulder = new ModelRenderer(this, 40, 38);
+    this.ArmLeftShoulder.addBox(2.0F, -4.0F, -2.0F, 4, 4, 4);
+    this.ArmLeftShoulder.setRotationPoint(2.0F, 3.0F, 1.0F);
+    this.ArmLeftShoulder.setTextureSize(128, 64);
+    this.ArmLeftShoulder.mirror = true;
+    setRotation(this.ArmLeftShoulder, 1.396263F, 0.0F, 0.0F);
+    this.ArmLeftHand = new ModelRenderer(this, 44, 22);
+    this.ArmLeftHand.addBox(2.0F, -8.0F, -6.0F, 4, 8, 4);
+    this.ArmLeftHand.setRotationPoint(2.0F, 3.0F, 1.0F);
+    this.ArmLeftHand.setTextureSize(128, 64);
+    this.ArmLeftHand.mirror = true;
+    setRotation(this.ArmLeftHand, 1.396263F, 0.0F, 0.0F);
+    this.ArmRightShoulder = new ModelRenderer(this, 40, 38);
+    this.ArmRightShoulder.addBox(-6.0F, -4.0F, -2.0F, 4, 4, 4);
+    this.ArmRightShoulder.setRotationPoint(-2.0F, 3.0F, 1.0F);
+    this.ArmRightShoulder.setTextureSize(128, 64);
+    this.ArmRightShoulder.mirror = false;
+    setRotation(this.ArmRightShoulder, 1.396263F, 0.0F, 0.0F);
+    this.ArmRightHand = new ModelRenderer(this, 44, 22);
+    this.ArmRightHand.addBox(-6.0F, -8.0F, -6.0F, 4, 8, 4);
+    this.ArmRightHand.setRotationPoint(-2.0F, 3.0F, 1.0F);
+    this.ArmRightHand.setTextureSize(128, 64);
+    this.ArmRightHand.mirror = false;
+    setRotation(this.ArmRightHand, 1.396263F, 0.0F, 0.0F);
+    this.Nose = new ModelRenderer(this, 24, 0);
+    this.Nose.addBox(-1.0F, -2.5F, -7.0F, 2, 4, 2);
+    this.Nose.setRotationPoint(0.0F, 0.0F, 0.0F);
+    this.Nose.setTextureSize(128, 64);
+    this.Nose.mirror = true;
+    setRotation(this.Nose, 0.0F, 0.0F, 0.0F);
+    this.Hat1 = new ModelRenderer(this, 32, 5);
+    this.Hat1.addBox(-4.5F, -10.0F, -5.5F, 9, 4, 9);
+    this.Hat1.setRotationPoint(0.0F, 0.0F, 0.0F);
+    this.Hat1.setTextureSize(128, 64);
+    this.Hat1.mirror = true;
+    setRotation(this.Hat1, 0.0F, 0.0F, 0.0F);
+    this.Hat2 = new ModelRenderer(this, 32, 0);
+    this.Hat2.addBox(-1.0F, -9.5F, -6.6F, 2, 2, 1);
+    this.Hat2.setRotationPoint(0.0F, 0.0F, 0.0F);
+    this.Hat2.setTextureSize(128, 64);
+    this.Hat2.mirror = true;
+    setRotation(this.Hat2, 0.0F, 0.0F, 0.0F);
+  }
+  
+  public void render(Entity entity, float f, float f1, float f2, float f3, float f4, float f5) {
+    super.render(entity, f, f1, f2, f3, f4, f5);
+    setRotationAngles(f, f1, f2, f3, f4, f5, entity);
+    this.Head.render(f5);
+    this.Body.render(f5);
+    this.LegLeft.render(f5);
+    this.LegRight.render(f5);
+    this.ArmLeftShoulder.render(f5);
+    this.ArmLeftHand.render(f5);
+    this.ArmRightShoulder.render(f5);
+    this.ArmRightHand.render(f5);
+    this.Nose.render(f5);
+    this.Hat1.render(f5);
+    this.Hat2.render(f5);
+  }
+  
+  private void setRotation(ModelRenderer model, float x, float y, float z) {
+    model.rotateAngleX = x;
+    model.rotateAngleY = y;
+    model.rotateAngleZ = z;
+  }
+  
+  public void setRotationAngles(float f, float f1, float f2, float f3, float f4, float f5, Entity entity) {
+    super.setRotationAngles(f, f1, f2, f3, f4, f5, entity);
+    this.Head.rotateAngleY = f4 / 57.295776F;
+    this.Head.rotateAngleX = f5 / 57.295776F;
+    this.Nose.rotateAngleY = f4 / 57.295776F;
+    this.Nose.rotateAngleX = f5 / 57.295776F;
+    this.Hat1.rotateAngleY = f4 / 57.295776F;
+    this.Hat1.rotateAngleX = f5 / 57.295776F;
+    this.Hat2.rotateAngleY = f4 / 57.295776F;
+    this.Hat2.rotateAngleX = f5 / 57.295776F;
+    this.LegRight.rotateAngleX = MathHelper.cos(f * 0.6662F * 2.0F + 0.0F) * 0.6F * f1;
+    this.LegLeft.rotateAngleX = -MathHelper.cos(f * 0.6662F * 2.0F + 0.0F) * 0.6F * f1;
+    this.ArmRightHand.rotateAngleX = MathHelper.cos(f * 0.6662F * 2.0F + 0.0F) * 0.6F * f1 + 1.396263F;
+    this.ArmLeftHand.rotateAngleX = -MathHelper.cos(f * 0.6662F * 2.0F + 0.0F) * 0.6F * f1 + 1.396263F;
+    this.ArmRightShoulder.rotateAngleX = MathHelper.cos(f * 0.6662F * 2.0F + 0.0F) * 0.6F * f1 + 1.396263F;
+    this.ArmLeftShoulder.rotateAngleX = -MathHelper.cos(f * 0.6662F * 2.0F + 0.0F) * 0.6F * f1 + 1.396263F;
+  }
+}

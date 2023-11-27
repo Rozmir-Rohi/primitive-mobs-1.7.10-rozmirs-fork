@@ -1,0 +1,28 @@
+Sheepman Smith now accepts Thaumcraft Gold Coins or anything else in the "nuggetGold" ore dictionary for item repairs.
+
+Lost Miners now become Villagers once they reach the surface and reward the player.
+
+Precious Pickaxes are now a 10% spawn chance inside haunted tool spawns (previously was a 1% chance). This new spawn chance is also the same chance as a silver sword drop from a Silver Skeleton in Mo' Creatures.
+
+
+
+Slight clean up of code in EntitySheepmanSmith.
+
+Slight clean up of brackets with CanDespawn function in most mobs.
+
+Renamed mod and changed mcmod.info accordingly.
+
+
+
+Added built-in Thaumcraft aspects.
+
+
+
+---------------------------------------------------
+Credits for Thaumcraft Aspects:
+
+Azanor - Thaumcraft API v4.2.2.0 was used as a library for the project. This was used under the MIT License.
+
+Et Futurum Requiem Team - Code in CompatThaumcraft.java and EtFuturum.java from the Et Futurum Requiem mod helped me understand the basis of adding Thaumcraft aspects to items, blocks, and mobs. This was used under the GNU Lesser General Public License v3.0.
+
+EnderIO Team - Code in ThaumcraftAspects.java from the EnderIO mod helped me understand how to add Thaumcraft aspects to sub-items with meta data values. This was used under the Unlicense license.
