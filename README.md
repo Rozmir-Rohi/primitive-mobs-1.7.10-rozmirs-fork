@@ -1,37 +1,32 @@
-# anatawa12's ForgeGradle 1.2 fork for Gradle 4.4.1+ - example project
+# Primitive Mobs Rozmirs Fork
 
-This is an example mod using the [fork of ForgeGradle-1.2 made by anatawa12](https://github.com/anatawa12/ForgeGradle-1.2).
-This fork supports Gradle 4.4.1 and later. This example project uses Gradle 5.6.4.
+This project is a modified version of the Primitive Mobs mod v1.0c and is licensed under the Creative Commons Attribution-NonCommercial 3.0 Unported license.
 
-## How to use this example project
 
-You can download this example project from [here](https://github.com/anatawa12/ForgeGradle-example/archive/master.zip), or use it as a template on Github.
-This project can be used as a replacement for Forge's 1.7.10 MDK.
+## Modifications to Original Mod
+* Sheepman Smith now accepts Thaumcraft Gold Coins or anything else in the "nuggetGold" ore dictionary for item repairs.
 
-## How to replace ForgeGradle 1.2. with anatawa12's fork
-Although this example project has some differences to Forge's 1.7.10 MDK, anatawa12's fork of ForgeGradle 1.2 can be used by most projects with only minimal changes to their Gradle build script.
+* Lost Miners now become Villagers once they reach the surface and reward the player.
 
-Here is a list of changes to Forge's 1.7.10 MDK Gradle build script, to replace the official ForgeGradle 1.2 plugin with the fork. These changes are likely to work with most projects based on Forge's 1.7.10 MDK.
+* Precious Pickaxes are now a 10% spawn chance inside haunted tool spawns (previously was a 1% chance). This new spawn chance is also the same chance as a silver sword drop from a Silver Skeleton in Mo' Creatures.
 
-In the repositories block of the buildscript section, add jcenter, and switch the Forge maven to use HTTPS instead of HTTP:
-```diff
-     repositories {
-         mavenCentral()
-         maven {
-             name = "forge"
--            url = "http://files.minecraftforge.net/maven"
-+            url = "https://maven.minecraftforge.net/"
-         }
-```
 
-Also in the dependencies block of the buildscript section, change the dependency on Forge's official ForgeGradle 1.2 to the fork:
-```diff
-     dependencies {
--        classpath 'net.minecraftforge.gradle:ForgeGradle:1.2-SNAPSHOT'
-+        classpath ('com.anatawa12.forge:ForgeGradle:1.2-1.0.+') {
-+            changing = true
-+        }
-     }
-```
+* Slight clean up of code in EntitySheepmanSmith.
 
-The Gradle wrapper should also be changed to use Gradle 4.4.1 or higher. <!--Currently, the plugin [does not support Gradle 6.x](https://github.com/anatawa12/ForgeGradle-1.2/issues/9), although this may change in the future. As such, the latest version of Gradle this plugin supports is Gradle 5.6.4.-->
+* Slight clean up of brackets with CanDespawn function in most mobs.
+
+* Renamed mod and changed mcmod.info accordingly.
+
+
+* Added built-in Thaumcraft aspects.
+
+
+
+---------------------------------------------------
+Credits for Thaumcraft Aspects:
+
+Azanor - Thaumcraft API v4.2.2.0 was used as a library for the project. This was used under the MIT License.
+
+Et Futurum Requiem Team - Code in CompatThaumcraft.java and EtFuturum.java from the Et Futurum Requiem mod helped me understand the basis of adding Thaumcraft aspects to items, blocks, and mobs. This was used under the GNU Lesser General Public License v3.0.
+
+EnderIO Team - Code in ThaumcraftAspects.java from the EnderIO mod helped me understand how to add Thaumcraft aspects to sub-items with meta data values. This was used under the Unlicense license.
