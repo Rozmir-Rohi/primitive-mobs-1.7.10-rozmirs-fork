@@ -22,8 +22,7 @@ This project is a modified version of the Primitive Mobs mod v1.0c for 1.7.10 an
 
 
 
----------------------------------------------------
-### Credits for Thaumcraft Aspects:
+## Credits for Thaumcraft Aspects:
 
 **Azanor** - Thaumcraft API v4.2.2.0 was used as a library for the project. This was used under the MIT License.
 
