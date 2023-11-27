@@ -22,16 +22,21 @@ This project is a modified version of the Primitive Mobs mod v1.0c for 1.7.10 an
 
 
 
-## Credits for Thaumcraft Aspects:
+## Credits & License Conditions
 
-**Azanor** - Thaumcraft API v4.2.2.0 was used as a library for the project. This was used under the MIT License.
+**Daveyx0** - Original creator of the Primitive Mobs mod.
+
+**Azanor** - Thaumcraft API v4.2.2.0 was used as a library for the project. This was used under the MIT License 
 
 **Et Futurum Requiem Team** - Code in CompatThaumcraft.java and EtFuturum.java from the Et Futurum Requiem mod helped me understand the basis of adding Thaumcraft aspects to items, blocks, and mobs. This was used under the GNU Lesser General Public License v3.0.
 
 **EnderIO Team** - Code in ThaumcraftAspects.java from the EnderIO mod helped me understand how to add Thaumcraft aspects to sub-items with meta data values. This was used under the Unlicense license.
 
 
-## Use of anatawa12's Fork of ForgeGradle 1.2 within Project:
+All license conditions have been satisfied through the application of the GNU Lesser General Public License v3.0, and disclosure of source code.
+
+
+### Use of anatawa12's Fork of ForgeGradle 1.2 within Project:
 The source code of this project uses anatawa12's fork of ForgeGradle 1.2 as a library under the GNU Lesser General Public License v2.1 (https://choosealicense.com/licenses/lgpl-2.1/).
  
 
