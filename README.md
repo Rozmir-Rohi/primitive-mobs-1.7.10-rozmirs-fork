@@ -1,6 +1,6 @@
 # Primitive Mobs Rozmirs Fork
 
-This project is a modified version of the Primitive Mobs mod v1.0c for 1.7.10 and is licensed under the Creative Commons Attribution-NonCommercial 3.0 Unported license.
+This project is a modified version of the Primitive Mobs mod v1.0c for 1.7.10 and is licensed under the GNU Lesser General Public License v3.0.
 
 
 ## Modifications to Original Mod
@@ -24,16 +24,16 @@ This project is a modified version of the Primitive Mobs mod v1.0c for 1.7.10 an
 
 ## Credits & License Conditions
 
-**Daveyx0** - Original creator of the Primitive Mobs mod.
+**Daveyx0** - Creator of the Primitive Mobs mod - provided the original mod under the Creative Commons Attribution-NonCommercial 3.0 Unported license (https://creativecommons.org/licenses/by-nc/3.0/).
 
-**Azanor** - Thaumcraft API v4.2.2.0 was used as a library for the project. This was used under the MIT License 
+**Azanor** - Thaumcraft API v4.2.2.0 was used as a library for the project. This was used under the MIT License (https://choosealicense.com/licenses/mit/). 
 
-**Et Futurum Requiem Team** - Code in CompatThaumcraft.java and EtFuturum.java from the Et Futurum Requiem mod helped me understand the basis of adding Thaumcraft aspects to items, blocks, and mobs. This was used under the GNU Lesser General Public License v3.0.
+**Et Futurum Requiem Team** - Code in CompatThaumcraft.java and EtFuturum.java from the Et Futurum Requiem mod helped me understand the basis of adding Thaumcraft aspects to items, blocks, and mobs. This was used under the GNU Lesser General Public License v3.0 (https://choosealicense.com/licenses/lgpl-3.0/).
 
 **EnderIO Team** - Code in ThaumcraftAspects.java from the EnderIO mod helped me understand how to add Thaumcraft aspects to sub-items with meta data values. This was used under the Unlicense license.
 
 
-All license conditions have been satisfied through the application of the GNU Lesser General Public License v3.0, and disclosure of source code.
+All license conditions have been satisfied through the application of the GNU Lesser General Public License v3.0, credit to the creator of the Primitive Mobs mod, notice of changes to original mod, and disclosure of source code.
 
 
 ### Use of anatawa12's Fork of ForgeGradle 1.2 within Project:
