@@ -35,7 +35,7 @@ minecraft {
 
 dependencies 
 {
-	implementation files("libs/Thaumcraft-1.7.10-4.2.3.5-api.jar")
+	implementation files("libs/Thaumcraft-1.7.10-4.2.2.0-api.jar")
 }
 
 processResources {
