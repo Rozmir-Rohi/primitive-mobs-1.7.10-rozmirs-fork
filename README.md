@@ -1,4 +1,8 @@
 # Primitive Mobs Rozmirs Fork
+**Project Status:** Finished & Finalized
+
+*The developer of this project is retired and does not respond to private messages or GitHub issues.*
+<br><br>
 
 This project is a modified version of the Primitive Mobs mod v1.0c for 1.7.10 and is licensed under the GNU Lesser General Public License v3.0.
 
